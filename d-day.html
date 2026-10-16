@@ -20,6 +20,7 @@
         overflow: hidden;
     }
 
+    /* 위젯 레이아웃 */
     #widget-container {
         flex: 1; display: flex; flex-direction: column; justify-content: space-between;
         padding: 5vw 6vw; box-sizing: border-box; background-color: var(--bg-color);
@@ -33,6 +34,7 @@
     .bottom-section { display: flex; align-items: flex-end; justify-content: flex-start; flex: 1; padding-bottom: 2vw; }
     #disp-dday { font-size: var(--dday-size); font-weight: 800; letter-spacing: -0.04em; line-height: 0.9; }
 
+    /* 설정 UI */
     #settings-btn { position: fixed; top: 20px; right: 20px; font-size: 24px; background: transparent; border: none; color: #888; cursor: pointer; z-index: 100; transition: color 0.3s; }
     #settings-btn:hover { color: #333; }
     
@@ -42,9 +44,159 @@
         box-shadow: -4px 0 15px rgba(0,0,0,0.1); z-index: 101; overflow-y: auto;
     }
 
-    .setting-category { background-color: #f7f7f7; border: 1px solid #ececec; border-radius: 12px; padding: 18px 15px; margin-bottom: 20px; }
+    /* 그룹화용 배경 박스 */
+    .setting-category {
+        background-color: #f7f7f7;
+        border: 1px solid #ececec;
+        border-radius: 12px;
+        padding: 18px 15px;
+        margin-bottom: 20px;
+    }
     .setting-category .setting-group { margin-bottom: 15px; }
     .setting-category .setting-group:last-child { margin-bottom: 0; }
+
     .setting-label { font-size: 13px; color: #333; margin-bottom: 8px; display: block; font-weight: 500; }
     
-    .input-bar { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 15px; display: flex; align-items: center
+    /* 바 형태의 입력창 스타일 */
+    .input-bar {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px; padding: 12px 15px;
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .input-bar input[type="text"], .input-bar input[type="date"] {
+        border: none; background: transparent; outline: none; font-size: 14px; color: #333; flex: 1; font-weight: 500;
+    }
+    .input-bar input[type="color"] {
+        border: none; background: transparent; width: 28px; height: 28px; padding: 0; cursor: pointer; border-radius: 4px;
+    }
+    .input-bar input[type="range"] {
+        flex: 1; accent-color: #555; height: 4px; border-radius: 2px; margin-right: 10px;
+    }
+
+    /* 직접 입력창 스타일 */
+    .num-input-wrap { display: flex; align-items: center; justify-content: flex-end; width: 60px; }
+    .num-input { 
+        width: 40px; border: none; background: transparent; text-align: right; 
+        font-size: 13px; color: #666; font-weight: 600; outline: none; padding: 0; font-family: inherit;
+        -moz-appearance: textfield; 
+    }
+    .num-input::-webkit-outer-spin-button, .num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .unit { font-size: 13px; color: #666; font-weight: 600; margin-left: 2px; }
+
+    .close-btn { background: #111; color: #fff; border: none; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 25px; width: 100%; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+    
+    /* 생성된 링크 영역 */
+    .link-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 25px; }
+    .link-title { font-size: 11px; color: #888; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .link-box { display: flex; align-items: stretch; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background: #fff; height: 40px; }
+    .notion-icon { background: #fff; padding: 0 12px; display: flex; align-items: center; font-weight: bold; font-size: 16px; border-right: 1px solid #eee; }
+    #generated-link { flex-grow: 1; border: none; padding: 0 12px; font-size: 12px; color: #333; outline: none; background: #f9f9f9; }
+    #copy-btn { background: #111; color: #fff; border: none; padding: 0 16px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+    <button id="settings-btn">⚙️</button>
+    
+    <div id="settings-modal">
+        <button class="close-btn" id="close-settings">Close</button>
+        
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Text</label>
+                <div class="input-bar"><input type="text" id="inp-text" value="Text"></div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">Text Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-txt" min="2" max="20" step="0.5" value="8">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-txt" class="num-input" value="8" min="2" max="20" step="0.5">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Text Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-txt-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-txt-color" value="#000000">
+                </div>
+            </div>
+        </div>
+        
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Day</label>
+                <div class="input-bar"><input type="text" id="inp-day" value="2000-01-01"></div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Day Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-day" min="2" max="20" step="0.5" value="7">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-day" class="num-input" value="7" min="2" max="20" step="0.5">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">D-day Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-dday" min="5" max="50" step="1" value="24">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-dday" class="num-input" value="24" min="5" max="50" step="1">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Background Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-bg-hex" value="#FFFFFF" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-bg-color" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Background Opacity</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-bg-op" min="0" max="100" step="1" value="100">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-bg-op" class="num-input" value="100" min="0" max="100" step="1">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="link-section">
+            <div class="link-title">COPY LINK, PASTE INTO NOTION, AND CLICK 'EMBED'</div>
+            <div class="link-box">
+                <div class="notion-icon">N</div>
+                <input type="text" id="generated-link" readonly>
+                <button id="copy-btn" title="Copy to clipboard">📋</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 위젯 출력 영역 -->
+    <div id="widget-container">
+        <div class="top-section">
+            <div id="disp-text">Text</div>
+            <div id="disp-day">2000-01-01</div>
+        </div>
+        <div class="bottom-section">
+            <div id="disp-dday">D-Day</div>
+        </div>
+    </div>
+
+<script
