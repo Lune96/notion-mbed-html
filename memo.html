@@ -8,11 +8,11 @@
     :root {
         --font-scale: 1; /* S, M, L 버튼을 통해 변경됨 */
         --primary-color: #6366f1;
-        --bg-color: #ffffff;
+        --bg-color: transparent; /* 기본 위젯 배경을 투명으로 설정 */
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
-        --widget-shadow: 0 1cqi 4cqi rgba(0,0,0,0.08);
+        --widget-shadow: none; /* 배경이 투명할 때는 그림자가 없는 것이 자연스러움 */
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,7 +79,7 @@
     }
     .color-circle.active { border: max(2px, 0.7cqi) solid #1f2937; transform: scale(1.15); }
     
-    /* 1. 색상 없음 아이콘: CSS 사선 처리 */
+    /* 색상 없음 아이콘: CSS 사선 처리 */
     .color-circle[data-color="none"] {
         background: linear-gradient(to top right, transparent 46%, #9ca3af 46%, #9ca3af 54%, transparent 54%), #ffffff;
         border: max(1px, 0.4cqi) solid #d1d5db;
@@ -93,12 +93,11 @@
 
     .memo-item {
         display: flex; align-items: center; 
+        /* 색상 유무와 무관하게 동일한 패딩을 부여하여 체크박스 위치 고정 */
         padding: 3cqi 3cqi 3cqi 5cqi;
         background-color: var(--memo-bg); border-radius: 4cqi; 
         position: relative; gap: 2.5cqi; overflow: hidden;
     }
-    /* 색상 바가 없을 때 왼쪽 패딩 좁히기 */
-    .memo-item.no-color { padding-left: 3cqi; }
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 1.5cqi; }
 
     .check-btn {
@@ -121,7 +120,7 @@
 
     .size-controls { 
         position: absolute; bottom: 5cqi; right: 5cqi; display: flex; gap: 1.5cqi; 
-        background-color: var(--bg-color); border-radius: 5cqi; padding: 1cqi; 
+        background-color: var(--memo-bg); border-radius: 5cqi; padding: 1cqi; 
     }
     body.embed-mode .size-controls { box-shadow: 0 0.5cqi 2cqi rgba(0,0,0,0.08); }
     .size-btn {
@@ -130,7 +129,7 @@
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 모달 설정창 UI (데스크탑 고정 픽셀) */
+    /* 모달 설정창 UI */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 22px; background: none; border: none; cursor: pointer; z-index: 100; }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -169,9 +168,13 @@
     </div>
 
     <div class="setting-group">
-        <label class="setting-label">위젯 전체 배경색</label>
+        <label class="setting-label">위젯 전체 배경</label>
+        <label class="checkbox-wrap" style="margin-bottom: 8px;">
+            <input type="checkbox" id="inp-bg-transparent" checked style="width:16px; height:16px;"> 배경 투명하게 (노션 화면에 자연스럽게 녹아듦)
+        </label>
         <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
     </div>
+
     <div class="setting-group">
         <label class="setting-label">입력창 & 메모 배경색</label>
         <input type="color" class="setting-input" id="inp-memo-bg" value="#f3f4f6">
@@ -204,243 +207,4 @@
                 <button class="add-btn center-icon" id="add-btn">+</button>
             </div>
             <div class="color-picker" id="color-picker">
-                <div class="color-circle active" data-color="none"></div>
-                <div class="color-circle" style="background-color: #f472b6;" data-color="#f472b6"></div>
-                <div class="color-circle" style="background-color: #60a5fa;" data-color="#60a5fa"></div>
-                <div class="color-circle" style="background-color: #4ade80;" data-color="#4ade80"></div>
-                <div class="color-circle" style="background-color: #fef08a;" data-color="#fef08a"></div>
-                <div class="color-circle" style="background-color: #fb923c;" data-color="#fb923c"></div>
-            </div>
-        </div>
-
-        <div class="memo-list" id="memo-list"></div>
-
-        <div class="size-controls" id="size-controls">
-            <button class="size-btn center-icon" data-size="S">S</button>
-            <button class="size-btn center-icon active" data-size="M">M</button>
-            <button class="size-btn center-icon" data-size="L">L</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const els = {
-        input: document.getElementById('memo-input'), addBtn: document.getElementById('add-btn'),
-        colorCircles: document.querySelectorAll('.color-circle'), memoList: document.getElementById('memo-list'),
-        sizeBtns: document.querySelectorAll('.size-btn'), root: document.documentElement,
-        settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
-        closeSettings: document.getElementById('close-settings'), generatedLink: document.getElementById('generated-link'),
-        copyBtn: document.getElementById('copy-btn'), header: document.getElementById('widget-header'), 
-        titleInput: document.getElementById('inp-title'), shadowCheckbox: document.getElementById('inp-shadow'),
-        bgColor: document.getElementById('inp-bg-color'), memoBg: document.getElementById('inp-memo-bg'),
-        primaryColor: document.getElementById('inp-primary-color'), textColor: document.getElementById('inp-text-color')
-    };
-
-    let selectedColor = 'none'; 
-    let memos = [];
-    let currentSize = 'M';
-
-    try {
-        const stored = localStorage.getItem('custom_memos_vfinal');
-        if (stored) memos = JSON.parse(stored);
-        if (!Array.isArray(memos)) memos = [];
-    } catch (e) { memos = []; }
-
-    try { currentSize = localStorage.getItem('custom_memo_size_final') || 'M'; } catch (e) {}
-
-    function init() {
-        if (!loadConfigFromURL()) {
-            updateGeneratedLink();
-        }
-        applySize(currentSize);
-        renderMemos();
-    }
-
-    function renderMemos() {
-        els.memoList.innerHTML = '';
-        if (memos.length === 0) {
-            els.memoList.innerHTML = '<div class="empty-state">No memos yet</div>';
-            return;
-        }
-
-        const sortedMemos = [...memos].sort((a, b) => {
-            if (a.isStarred && !b.isStarred) return -1;
-            if (!a.isStarred && b.isStarred) return 1;
-            return b.id - a.id; 
-        });
-
-        sortedMemos.forEach((memo) => {
-            const item = document.createElement('div');
-            item.className = 'memo-item';
-            
-            // 색상 없음 처리 (여백 좁히기 적용)
-            if (memo.color !== 'none') {
-                const colorBar = document.createElement('div');
-                colorBar.className = 'memo-color-bar';
-                colorBar.style.backgroundColor = memo.color;
-                item.appendChild(colorBar);
-            } else {
-                item.classList.add('no-color');
-            }
-
-            const checkBtn = document.createElement('button');
-            checkBtn.className = `check-btn center-icon ${memo.isChecked ? 'checked' : ''}`;
-            checkBtn.innerHTML = memo.isChecked ? '✓' : '';
-            checkBtn.onclick = () => toggleCheck(memo.id);
-
-            const text = document.createElement('div');
-            text.className = `memo-text ${memo.isChecked ? 'checked-text' : ''}`;
-            text.contentEditable = true;
-            text.innerText = memo.text;
-            text.onblur = (e) => updateMemoText(memo.id, e.target.innerText);
-            text.onkeydown = (e) => { if(e.key === 'Enter') { e.preventDefault(); text.blur(); } };
-
-            const starBtn = document.createElement('button');
-            starBtn.className = `star-btn center-icon ${memo.isStarred ? 'starred' : ''}`;
-            starBtn.innerHTML = memo.isStarred ? '★' : '☆';
-            starBtn.onclick = () => toggleStar(memo.id);
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'delete-btn center-icon';
-            deleteBtn.innerHTML = '×';
-            deleteBtn.onclick = () => deleteMemo(memo.id);
-
-            item.appendChild(checkBtn);
-            item.appendChild(text);
-            item.appendChild(starBtn);
-            item.appendChild(deleteBtn);
-            
-            els.memoList.appendChild(item);
-        });
-    }
-
-    function addMemo() {
-        const text = els.input.value.trim();
-        if (!text) return;
-        memos.push({ id: Date.now(), text: text, color: selectedColor, isStarred: false, isChecked: false });
-        saveAndRender();
-        els.input.value = '';
-    }
-
-    function toggleStar(id) {
-        const target = memos.find(m => m.id === id);
-        if(target) { target.isStarred = !target.isStarred; saveAndRender(); }
-    }
-
-    function toggleCheck(id) {
-        const target = memos.find(m => m.id === id);
-        if(target) { target.isChecked = !target.isChecked; saveAndRender(); }
-    }
-
-    function updateMemoText(id, newText) {
-        const target = memos.find(m => m.id === id);
-        if(target && newText.trim() !== '') { target.text = newText; saveAndRender(); }
-    }
-
-    function deleteMemo(id) {
-        memos = memos.filter(m => m.id !== id);
-        saveAndRender();
-    }
-
-    function saveAndRender() {
-        try { localStorage.setItem('custom_memos_vfinal', JSON.stringify(memos)); } catch(e) {}
-        renderMemos();
-    }
-
-    function applySize(size) {
-        let scale = 1;
-        if (size === 'S' || size === '14') scale = 0.85;
-        if (size === 'L' || size === '18') scale = 1.15;
-        
-        els.root.style.setProperty('--font-scale', scale);
-        els.sizeBtns.forEach(btn => {
-            if (btn.dataset.size === size) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        try { localStorage.setItem('custom_memo_size_final', size); } catch(e) {}
-    }
-
-    els.colorCircles.forEach(circle => {
-        circle.addEventListener('click', (e) => {
-            els.colorCircles.forEach(c => c.classList.remove('active'));
-            e.target.classList.add('active');
-            selectedColor = e.target.dataset.color;
-        });
-    });
-
-    els.addBtn.addEventListener('click', addMemo);
-    els.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addMemo(); });
-    els.sizeBtns.forEach(btn => { btn.addEventListener('click', (e) => applySize(e.target.dataset.size)); });
-
-    els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
-    els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
-
-    els.titleInput.addEventListener('input', (e) => {
-        els.header.innerText = e.target.value || 'MEMO';
-        updateGeneratedLink();
-    });
-
-    function applySettings() {
-        els.root.style.setProperty('--bg-color', els.bgColor.value);
-        els.root.style.setProperty('--memo-bg', els.memoBg.value);
-        els.root.style.setProperty('--primary-color', els.primaryColor.value);
-        els.root.style.setProperty('--text-color', els.textColor.value);
-        els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 1cqi 4cqi rgba(0,0,0,0.08)' : 'none');
-        updateGeneratedLink();
-    }
-
-    [els.bgColor, els.memoBg, els.primaryColor, els.textColor].forEach(el => { el.addEventListener('input', applySettings); });
-    els.shadowCheckbox.addEventListener('change', applySettings);
-
-    function updateGeneratedLink() {
-        try {
-            const url = new URL(window.location.href.split('?')[0]);
-            url.searchParams.set('embed', 'true');
-            url.searchParams.set('title', encodeURIComponent(els.titleInput.value));
-            url.searchParams.set('sh', els.shadowCheckbox.checked ? '1' : '0');
-            url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
-            url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
-            url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
-            url.searchParams.set('tc', els.textColor.value.replace('#', ''));
-            els.generatedLink.value = url.href;
-        } catch(e) {}
-    }
-
-    function loadConfigFromURL() {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('embed') === 'true') {
-                els.settingsBtn.style.display = 'none';
-                document.body.classList.add('embed-mode');
-                
-                if(params.get('title')) {
-                    const decodedTitle = decodeURIComponent(params.get('title'));
-                    els.header.innerText = decodedTitle || 'MEMO';
-                    els.titleInput.value = decodedTitle;
-                }
-                if(params.has('sh')) {
-                    const hasShadow = params.get('sh') === '1';
-                    els.shadowCheckbox.checked = hasShadow;
-                    els.root.style.setProperty('--widget-shadow', hasShadow ? '0 1cqi 4cqi rgba(0,0,0,0.08)' : 'none');
-                }
-                if(params.get('bg')) els.root.style.setProperty('--bg-color', '#' + params.get('bg'));
-                if(params.get('mbg')) els.root.style.setProperty('--memo-bg', '#' + params.get('mbg'));
-                if(params.get('pc')) els.root.style.setProperty('--primary-color', '#' + params.get('pc'));
-                if(params.get('tc')) els.root.style.setProperty('--text-color', '#' + params.get('tc'));
-                return true;
-            }
-        } catch(e) {}
-        return false;
-    }
-
-    els.copyBtn.addEventListener('click', () => {
-        els.generatedLink.select();
-        document.execCommand('copy');
-        els.copyBtn.innerText = '완료';
-        setTimeout(() => els.copyBtn.innerText = '복사', 1500);
-    });
-
-    init();
-</script>
-</body>
-</html>
+                <div class="color-circle active
