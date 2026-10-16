@@ -1,0 +1,300 @@
+flip-clock.html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurable Flip Clock</title>
+<style>
+    :root {
+        --bg-color: #1a1a1a;
+        --clock-bg: #fafafa;
+        --digit-color: #242424;
+        --text-color: #FFFFFF;
+        
+        /* 동적 스케일링을 위한 CSS 변수 */
+        --base-size: 15vw;
+        --box-pad-y: 2vw;
+        --box-pad-x: 3vw;
+        --radius: 1.5vw;
+        --tz-size: 4vw;
+        --label-size: 4vw;
+        --date-size: 3vw;
+        --gap-size: 1vw;
+    }
+
+    body {
+        margin: 0; padding: 0;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        height: 100vh; overflow: hidden;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* 시계 레이아웃 */
+    #label-display { font-size: var(--label-size); font-weight: bold; margin-bottom: var(--box-pad-y); display: none; transition: font-size 0.3s, margin 0.3s; }
+    .clock-wrapper { display: flex; align-items: center; gap: var(--gap-size); position: relative; transition: gap 0.3s; }
+    
+    .digit-box {
+        position: relative; background-color: var(--clock-bg); color: var(--digit-color);
+        font-size: var(--base-size); font-weight: bold; padding: var(--box-pad-y) var(--box-pad-x); border-radius: var(--radius);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-align: center; line-height: 1;
+        transition: background-color 0.3s, color 0.3s, font-size 0.3s, padding 0.3s, border-radius 0.3s;
+    }
+    .digit-box::after {
+        content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
+        background-color: var(--bg-color); transform: translateY(-50%); transition: background-color 0.3s;
+    }
+    .colon { font-size: var(--base-size); font-weight: bold; padding-bottom: var(--box-pad-y); transition: font-size 0.3s, padding 0.3s; }
+    #tz-display { font-size: var(--tz-size); font-weight: bold; align-self: flex-end; margin-bottom: var(--box-pad-y); margin-left: var(--gap-size); display: none; transition: font-size 0.3s, margin 0.3s; }
+    #date-display { font-size: var(--date-size); font-weight: bold; margin-top: 3vw; display: none; transition: font-size 0.3s; }
+
+    /* 설정 UI */
+    #settings-btn { position: fixed; top: 20px; right: 20px; font-size: 24px; background: transparent; border: none; color: #888; cursor: pointer; z-index: 100; }
+    #settings-modal { display: none; position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background-color: #f5f5f5; color: #333; padding: 20px; box-sizing: border-box; box-shadow: -4px 0 10px rgba(0,0,0,0.2); z-index: 101; overflow-y: auto; font-size: 14px; }
+    .setting-group { margin-bottom: 15px; }
+    .setting-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+    .setting-group input[type="text"], .setting-group select, .setting-group input[type="color"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    .toggle-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
+    .close-btn { background: #333; color: #fff; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; margin-bottom: 20px; width: 100%; }
+    
+    /* 스위치 스타일 */
+    .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #2196F3; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* 생성된 링크 영역 */
+    .link-section { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+    .link-title { font-size: 11px; color: #888; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px; }
+    .link-box { display: flex; align-items: stretch; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; background: #fff; height: 36px; }
+    .notion-icon { background: #fff; padding: 0 10px; display: flex; align-items: center; font-weight: bold; font-size: 16px; border-right: 1px solid #eee; }
+    #generated-link { flex-grow: 1; border: none; padding: 0 10px; font-size: 12px; color: #333; outline: none; background: #f9f9f9; }
+    #copy-btn { background: #000; color: #fff; border: none; padding: 0 15px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    #copy-btn:hover { background: #333; }
+</style>
+</head>
+<body>
+
+    <button id="settings-btn">⚙️</button>
+    <div id="settings-modal">
+        <button class="close-btn" id="close-settings">닫기</button>
+        
+        <div class="setting-group">
+            <label>Timezone</label>
+            <select id="sel-timezone">
+                <option value="Asia/Seoul">Asia/Seoul [KST]</option>
+                <option value="America/New_York">America/New_York [EST/EDT]</option>
+                <option value="Europe/London">Europe/London [GMT/BST]</option>
+                <option value="UTC">UTC</option>
+            </select>
+        </div>
+
+        <div class="toggle-group"><span>Use 24h clock</span><label class="switch"><input type="checkbox" id="chk-24h" checked><span class="slider"></span></label></div>
+        <div class="toggle-group"><span>Show seconds</span><label class="switch"><input type="checkbox" id="chk-sec" checked><span class="slider"></span></label></div>
+        <div class="toggle-group"><span>Show date text</span><label class="switch"><input type="checkbox" id="chk-date" checked><span class="slider"></span></label></div>
+        <div class="toggle-group"><span>Show timezone</span><label class="switch"><input type="checkbox" id="chk-tz" checked><span class="slider"></span></label></div>
+        <div class="toggle-group"><span>Add label</span><label class="switch"><input type="checkbox" id="chk-label" checked><span class="slider"></span></label></div>
+        
+        <div class="setting-group" id="group-label-name"><input type="text" id="inp-label" value="Label name"></div>
+
+        <div class="setting-group">
+            <label>Dark/light appearance</label>
+            <select id="sel-theme">
+                <option value="none">Do nothing</option>
+                <option value="system" selected>Use system setting</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+
+        <div class="setting-group"><label>Clock color</label><input type="color" id="inp-clock-color" value="#fafafa"></div>
+        <div class="setting-group"><label>Digit color</label><input type="color" id="inp-digit-color" value="#242424"></div>
+        <div class="setting-group"><label>Text color</label><input type="color" id="inp-text-color" value="#FFFFFF"></div>
+
+        <div class="link-section">
+            <div class="link-title">COPY LINK, PASTE INTO NOTION, AND CLICK 'EMBED'</div>
+            <div class="link-box">
+                <div class="notion-icon">N</div>
+                <input type="text" id="generated-link" readonly>
+                <button id="copy-btn" title="Copy to clipboard">📋</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="label-display">Label name</div>
+    <div class="clock-wrapper">
+        <div class="digit-box" id="hours">00</div>
+        <div class="colon">:</div>
+        <div class="digit-box" id="minutes">00</div>
+        <div class="colon" id="colon-sec">:</div>
+        <div class="digit-box" id="seconds">00</div>
+        <div id="tz-display">KST</div>
+    </div>
+    <div id="date-display">Date</div>
+
+<script>
+    const els = {
+        hours: document.getElementById('hours'), minutes: document.getElementById('minutes'),
+        seconds: document.getElementById('seconds'), colonSec: document.getElementById('colon-sec'),
+        labelDisplay: document.getElementById('label-display'), tzDisplay: document.getElementById('tz-display'),
+        dateDisplay: document.getElementById('date-display'), selTimezone: document.getElementById('sel-timezone'),
+        chk24h: document.getElementById('chk-24h'), chkSec: document.getElementById('chk-sec'),
+        chkDate: document.getElementById('chk-date'), chkTz: document.getElementById('chk-tz'),
+        chkLabel: document.getElementById('chk-label'), inpLabel: document.getElementById('inp-label'),
+        selTheme: document.getElementById('sel-theme'), inpClockColor: document.getElementById('inp-clock-color'),
+        inpDigitColor: document.getElementById('inp-digit-color'), inpTextColor: document.getElementById('inp-text-color'),
+        settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
+        closeSettings: document.getElementById('close-settings'), generatedLink: document.getElementById('generated-link'),
+        copyBtn: document.getElementById('copy-btn')
+    };
+
+    function loadConfigFromURL() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (Array.from(params.keys()).length === 0) return false;
+
+            els.selTimezone.value = params.get('tz') || 'Asia/Seoul';
+            els.chk24h.checked = params.get('h24') !== '0';
+            els.chkSec.checked = params.get('sec') !== '0';
+            els.chkDate.checked = params.get('date') !== '0';
+            els.chkTz.checked = params.get('stz') !== '0';
+            els.chkLabel.checked = params.get('lbl') !== '0';
+            els.inpLabel.value = params.get('txt') || 'Label name';
+            els.selTheme.value = params.get('thm') || 'system';
+            els.inpClockColor.value = '#' + (params.get('cbc') || 'fafafa');
+            els.inpDigitColor.value = '#' + (params.get('dgc') || '242424');
+            els.inpTextColor.value = '#' + (params.get('txc') || 'FFFFFF');
+        } catch(e) { console.warn('URL 파라미터 로딩 실패', e); }
+    }
+
+    function updateGeneratedLink() {
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tz', els.selTimezone.value);
+            url.searchParams.set('h24', els.chk24h.checked ? '1' : '0');
+            url.searchParams.set('sec', els.chkSec.checked ? '1' : '0');
+            url.searchParams.set('date', els.chkDate.checked ? '1' : '0');
+            url.searchParams.set('stz', els.chkTz.checked ? '1' : '0');
+            url.searchParams.set('lbl', els.chkLabel.checked ? '1' : '0');
+            url.searchParams.set('txt', els.inpLabel.value);
+            url.searchParams.set('thm', els.selTheme.value);
+            url.searchParams.set('cbc', els.inpClockColor.value.replace('#', ''));
+            url.searchParams.set('dgc', els.inpDigitColor.value.replace('#', ''));
+            url.searchParams.set('txc', els.inpTextColor.value.replace('#', ''));
+            els.generatedLink.value = url.href;
+        } catch(e) { console.warn('링크 생성 실패', e); }
+    }
+
+    function applyConfig() {
+        try {
+            document.documentElement.style.setProperty('--clock-bg', els.inpClockColor.value);
+            document.documentElement.style.setProperty('--digit-color', els.inpDigitColor.value);
+            document.documentElement.style.setProperty('--text-color', els.inpTextColor.value);
+            
+            let isDark = true;
+            if (els.selTheme.value === 'light') isDark = false;
+            else if (els.selTheme.value === 'dark') isDark = true;
+            else if (els.selTheme.value === 'system' && window.matchMedia) {
+                isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
+            if (els.selTheme.value === 'none') {
+                document.documentElement.style.setProperty('--bg-color', 'transparent');
+            } else {
+                document.documentElement.style.setProperty('--bg-color', isDark ? '#1a1a1a' : '#f0f0f0');
+            }
+
+            els.labelDisplay.style.display = els.chkLabel.checked ? 'block' : 'none';
+            els.labelDisplay.innerText = els.inpLabel.value;
+            els.inpLabel.parentElement.style.display = els.chkLabel.checked ? 'block' : 'none';
+            els.seconds.style.display = els.chkSec.checked ? 'block' : 'none';
+            els.colonSec.style.display = els.chkSec.checked ? 'block' : 'none';
+            els.dateDisplay.style.display = els.chkDate.checked ? 'block' : 'none';
+            els.tzDisplay.style.display = els.chkTz.checked ? 'block' : 'none';
+
+            const tzAbbrs = { 'Asia/Seoul': 'KST', 'America/New_York': 'EST', 'Europe/London': 'GMT', 'UTC': 'UTC' };
+            els.tzDisplay.innerText = tzAbbrs[els.selTimezone.value] || 'UTC';
+
+            // 동적 스케일링
+            let scale = 1.0;
+            if (!els.chkSec.checked) scale += 0.50; 
+            if (!els.chkTz.checked) scale += 0.05;  
+
+            document.documentElement.style.setProperty('--base-size', (15 * scale) + 'vw');
+            document.documentElement.style.setProperty('--box-pad-y', (2 * scale) + 'vw');
+            document.documentElement.style.setProperty('--box-pad-x', (3 * scale) + 'vw');
+            document.documentElement.style.setProperty('--radius', (1.5 * scale) + 'vw');
+            document.documentElement.style.setProperty('--tz-size', (4 * scale) + 'vw');
+            document.documentElement.style.setProperty('--label-size', (4 * scale) + 'vw');
+            document.documentElement.style.setProperty('--date-size', (3 * scale) + 'vw');
+            document.documentElement.style.setProperty('--gap-size', (1 * scale) + 'vw');
+
+            updateTime();
+            updateGeneratedLink();
+        } catch(e) { console.error('설정 적용 오류', e); }
+    }
+
+    function updateTime() {
+        try {
+            const now = new Date();
+            const tzOpt = { timeZone: els.selTimezone.value };
+            
+            const timeFmt = new Intl.DateTimeFormat('en-US', { ...tzOpt, hour12: !els.chk24h.checked, hour: 'numeric', minute: '2-digit', second: '2-digit' });
+            const parts = timeFmt.formatToParts(now);
+            const getPart = (type) => { const p = parts.find(x => x.type === type); return p ? p.value : ''; };
+            
+            const h = getPart('hour');
+            els.hours.innerText = h ? h.padStart(2, '0') : '00';
+            els.minutes.innerText = getPart('minute') || '00';
+            els.seconds.innerText = getPart('second') || '00';
+
+            const dateFmt = new Intl.DateTimeFormat('en-US', { ...tzOpt, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const dParts = dateFmt.formatToParts(now);
+            const getDPart = (type) => { const p = dParts.find(x => x.type === type); return p ? p.value : ''; };
+            els.dateDisplay.innerText = `${getDPart('weekday')} | ${getDPart('month')} ${getDPart('day')}, ${getDPart('year')}`;
+        } catch(e) { console.warn('시간 렌더링 오류', e); }
+    }
+
+    // 초기화 및 이벤트 바인딩
+    try {
+        ['change', 'input'].forEach(evt => {
+            [els.selTimezone, els.chk24h, els.chkSec, els.chkDate, els.chkTz, els.chkLabel, els.inpLabel, 
+             els.selTheme, els.inpClockColor, els.inpDigitColor, els.inpTextColor].forEach(el => {
+                if(el) el.addEventListener(evt, applyConfig);
+            });
+        });
+
+        els.copyBtn.addEventListener('click', () => {
+            els.generatedLink.select();
+            document.execCommand('copy');
+            const originalText = els.copyBtn.innerText;
+            els.copyBtn.innerText = '✓';
+            setTimeout(() => els.copyBtn.innerText = originalText, 1500);
+        });
+
+        if (window.matchMedia) {
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            const themeChangeHandler = () => { if (els.selTheme.value === 'system') applyConfig(); };
+            if (mq.addEventListener) mq.addEventListener('change', themeChangeHandler);
+            else if (mq.addListener) mq.addListener(themeChangeHandler); // 구형 브라우저 대응
+        }
+
+        if (window !== window.parent) {
+            els.settingsBtn.style.display = 'none';
+        } else {
+            els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
+            els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
+        }
+
+        loadConfigFromURL();
+        applyConfig();
+        setInterval(updateTime, 1000);
+    } catch(e) { console.error('스크립트 초기화 오류', e); }
+</script>
+</body>
+</html>
