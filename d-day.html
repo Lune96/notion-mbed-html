@@ -72,18 +72,17 @@
 </head>
 <body>
 
-    <button id="settings-btn">⚙️</button>
+    <!-- HTML 인라인 이벤트를 사용하여 스크립트 오류와 무관하게 강제 작동되도록 수정 -->
+    <button id="settings-btn" onclick="document.getElementById('settings-modal').style.display='block'">⚙️</button>
     
     <div id="settings-modal">
-        <button class="close-btn" id="close-settings">Close</button>
+        <button class="close-btn" id="close-settings" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
         
-        <!-- Text 구역 -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Text</label>
                 <div class="input-bar"><input type="text" id="inp-text" value="Text"></div>
             </div>
-            
             <div class="setting-group">
                 <label class="setting-label">Text Size</label>
                 <div class="input-bar">
@@ -94,7 +93,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="setting-group">
                 <label class="setting-label">Text Color</label>
                 <div class="input-bar">
@@ -104,13 +102,11 @@
             </div>
         </div>
         
-        <!-- Date 구역 (요청하신 4개 항목 묶음) -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Date</label>
                 <div class="input-bar"><input type="date" id="inp-day" value="2000-01-01"></div>
             </div>
-
             <div class="setting-group">
                 <label class="setting-label">Date Format</label>
                 <div class="input-bar">
@@ -123,7 +119,6 @@
                     </select>
                 </div>
             </div>
-
             <div class="setting-group">
                 <label class="setting-label">Date Size</label>
                 <div class="input-bar">
@@ -134,7 +129,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="setting-group">
                 <label class="setting-label">Date Color</label>
                 <div class="input-bar">
@@ -144,7 +138,6 @@
             </div>
         </div>
 
-        <!-- D-day 구역 (요청하신 2개 항목 묶음) -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">D-day Size</label>
@@ -156,7 +149,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="setting-group">
                 <label class="setting-label">D-day Color</label>
                 <div class="input-bar">
@@ -166,7 +158,6 @@
             </div>
         </div>
 
-        <!-- Background 구역 -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Background Color</label>
@@ -175,7 +166,6 @@
                     <input type="color" id="inp-bg-color" value="#ffffff">
                 </div>
             </div>
-
             <div class="setting-group">
                 <label class="setting-label">Background Opacity</label>
                 <div class="input-bar">
@@ -198,7 +188,6 @@
         </div>
     </div>
 
-    <!-- 위젯 출력 영역 -->
     <div id="widget-container">
         <div class="top-section">
             <div id="disp-text">Text</div>
@@ -210,71 +199,136 @@
     </div>
 
 <script>
-    // 1. 에러 전면 차단: 설정창 활성화 코드를 최상단에 독립 배치
-    try {
-        const sBtn = document.getElementById('settings-btn');
-        const sModal = document.getElementById('settings-modal');
-        const sClose = document.getElementById('close-settings');
-        if (sBtn && sModal) sBtn.addEventListener('click', () => sModal.style.display = 'block');
-        if (sClose && sModal) sClose.addEventListener('click', () => sModal.style.display = 'none');
-    } catch(e) { console.error("Modal Init Error", e); }
+    const els = {
+        inpText: document.getElementById('inp-text'), inpDay: document.getElementById('inp-day'),
+        selFormat: document.getElementById('inp-date-format'),
+        szTxt: document.getElementById('inp-sz-txt'), szDay: document.getElementById('inp-sz-day'), szDday: document.getElementById('inp-sz-dday'),
+        valTxt: document.getElementById('inp-val-txt'), valDay: document.getElementById('inp-val-day'), valDday: document.getElementById('inp-val-dday'),
+        bgHex: document.getElementById('inp-bg-hex'), bgColor: document.getElementById('inp-bg-color'),
+        bgOp: document.getElementById('inp-bg-op'), valBgOp: document.getElementById('inp-val-bg-op'),
+        txtHex: document.getElementById('inp-txt-hex'), txtColor: document.getElementById('inp-txt-color'),
+        dayHex: document.getElementById('inp-day-hex'), dayColor: document.getElementById('inp-day-color'),
+        ddayHex: document.getElementById('inp-dday-hex'), ddayColor: document.getElementById('inp-dday-color'),
+        dispText: document.getElementById('disp-text'), dispDay: document.getElementById('disp-day'), dispDday: document.getElementById('disp-dday'),
+        generatedLink: document.getElementById('generated-link'), copyBtn: document.getElementById('copy-btn')
+    };
 
-    // 2. 메인 스크립트 (오류 보호막 적용)
-    try {
-        const els = {
-            inpText: document.getElementById('inp-text'), inpDay: document.getElementById('inp-day'),
-            selFormat: document.getElementById('inp-date-format'),
-            szTxt: document.getElementById('inp-sz-txt'), szDay: document.getElementById('inp-sz-day'), szDday: document.getElementById('inp-sz-dday'),
-            valTxt: document.getElementById('inp-val-txt'), valDay: document.getElementById('inp-val-day'), valDday: document.getElementById('inp-val-dday'),
-            bgHex: document.getElementById('inp-bg-hex'), bgColor: document.getElementById('inp-bg-color'),
-            bgOp: document.getElementById('inp-bg-op'), valBgOp: document.getElementById('inp-val-bg-op'),
-            txtHex: document.getElementById('inp-txt-hex'), txtColor: document.getElementById('inp-txt-color'),
-            dayHex: document.getElementById('inp-day-hex'), dayColor: document.getElementById('inp-day-color'),
-            ddayHex: document.getElementById('inp-dday-hex'), ddayColor: document.getElementById('inp-dday-color'),
-            dispText: document.getElementById('disp-text'), dispDay: document.getElementById('disp-day'), dispDday: document.getElementById('disp-dday'),
-            generatedLink: document.getElementById('generated-link'), copyBtn: document.getElementById('copy-btn')
-        };
-
-        // 컬러 피커 오류 방지 유틸리티
-        function safeSetColor(el, val) {
-            if(!el || !val) return;
-            try {
-                let c = val.replace(/#/g, '');
-                if(c.length === 3) c = c.split('').map(x=>x+x).join('');
-                if(c.length === 6) el.value = '#' + c.toLowerCase();
-            } catch(e) {}
-        }
-
-        function hexToRgba(hex, opacity) {
-            if(!hex) return 'transparent';
-            let c = hex.replace(/#/g, '');
+    function safeSetColor(el, val) {
+        if(!el || !val) return;
+        try {
+            let c = val.replace(/#/g, '');
             if(c.length === 3) c = c.split('').map(x=>x+x).join('');
-            const r = parseInt(c.slice(0, 2), 16) || 0;
-            const g = parseInt(c.slice(2, 4), 16) || 0;
-            const b = parseInt(c.slice(4, 6), 16) || 0;
-            return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+            if(c.length === 6) el.value = '#' + c.toLowerCase();
+        } catch(e) {}
+    }
+
+    function hexToRgba(hex, opacity) {
+        if(!hex) return 'transparent';
+        let c = hex.replace(/#/g, '');
+        if(c.length === 3) c = c.split('').map(x=>x+x).join('');
+        const r = parseInt(c.slice(0, 2), 16) || 0;
+        const g = parseInt(c.slice(2, 4), 16) || 0;
+        const b = parseInt(c.slice(4, 6), 16) || 0;
+        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+    }
+
+    function updateDdayCalc() {
+        if(!els.inpDay || !els.dispDay || !els.dispDday || !els.selFormat) return;
+        
+        const dateVal = els.inpDay.value;
+        if (!dateVal) {
+            els.dispDay.innerText = "";
+            els.dispDday.innerText = "D-?";
+            return;
         }
 
-        function updateDdayCalc() {
-            try {
-                if(!els.inpDay || !els.dispDay || !els.dispDday || !els.selFormat) return;
-                
-                const dateVal = els.inpDay.value;
-                if (!dateVal) {
-                    els.dispDay.innerText = "";
-                    els.dispDday.innerText = "D-?";
-                    return;
-                }
+        const parts = dateVal.split('-');
+        const y = parts[0];
+        const m = parts[1] || '01';
+        const d = parts[2] || '01';
+        
+        let formatStr = els.selFormat.value || 'yyyy-mm-dd';
+        let displayStr = formatStr.replace('yyyy', y).replace('mm', m).replace('dd', d);
+        els.dispDay.innerText = displayStr;
 
-                const parts = dateVal.split('-');
-                const y = parts[0];
-                const m = parts[1] || '01';
-                const d = parts[2] || '01';
-                
-                let formatStr = els.selFormat.value || 'yyyy-mm-dd';
-                let displayStr = formatStr.replace('yyyy', y).replace('mm', m).replace('dd', d);
-                els.dispDay.innerText = displayStr;
+        const targetDate = new Date(y, parseInt(m) - 1, d);
+        if (isNaN(targetDate.getTime())) {
+            els.dispDday.innerText = "D-?";
+            return;
+        }
 
-                const targetDate = new Date(y, parseInt(m) - 1, d);
-                if (isNaN(targetDate.getTime())) {
-                    els.dispDday
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const diffTime = today - targetDate;
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+        els.dispDday.innerText = diffDays >= 0 ? "D+" + diffDays : "D" + diffDays;
+    }
+
+    function updateGeneratedLink() {
+        if(!els.generatedLink) return;
+        try {
+            const url = new URL(window.location.href);
+            if(els.inpText) url.searchParams.set('txt', els.inpText.value);
+            if(els.inpDay) url.searchParams.set('day', els.inpDay.value);
+            if(els.selFormat) url.searchParams.set('df', els.selFormat.value);
+            if(els.szTxt) url.searchParams.set('st', els.szTxt.value);
+            if(els.szDay) url.searchParams.set('sd', els.szDay.value);
+            if(els.szDday) url.searchParams.set('sdd', els.szDday.value);
+            if(els.bgHex) url.searchParams.set('bc', els.bgHex.value.replace(/#/g, ''));
+            if(els.bgOp) url.searchParams.set('bo', els.bgOp.value);
+            if(els.txtHex) url.searchParams.set('tc', els.txtHex.value.replace(/#/g, ''));
+            if(els.dayHex) url.searchParams.set('dc', els.dayHex.value.replace(/#/g, ''));
+            if(els.ddayHex) url.searchParams.set('ddc', els.ddayHex.value.replace(/#/g, ''));
+            els.generatedLink.value = url.href;
+        } catch(e) {}
+    }
+
+    function applyConfig() {
+        if(els.dispText && els.inpText) els.dispText.innerText = els.inpText.value;
+        updateDdayCalc();
+
+        if(els.valTxt && els.szTxt) els.valTxt.value = els.szTxt.value;
+        if(els.valDay && els.szDay) els.valDay.value = els.szDay.value;
+        if(els.valDday && els.szDday) els.valDday.value = els.szDday.value;
+        if(els.valBgOp && els.bgOp) els.valBgOp.value = els.bgOp.value;
+
+        if(els.szTxt) document.documentElement.style.setProperty('--txt-size', els.szTxt.value + 'vw');
+        if(els.szDay) document.documentElement.style.setProperty('--day-size', els.szDay.value + 'vw');
+        if(els.szDday) document.documentElement.style.setProperty('--dday-size', els.szDday.value + 'vw');
+        if(els.txtHex) document.documentElement.style.setProperty('--text-color', els.txtHex.value);
+        if(els.dayHex) document.documentElement.style.setProperty('--day-color', els.dayHex.value);
+        if(els.ddayHex) document.documentElement.style.setProperty('--dday-color', els.ddayHex.value);
+        if(els.bgHex && els.bgOp) document.documentElement.style.setProperty('--bg-color', hexToRgba(els.bgHex.value, els.bgOp.value));
+
+        updateGeneratedLink();
+    }
+
+    function syncInputRange(numEl, rangeEl, allowDecimal) {
+        if(!numEl || !rangeEl) return;
+        numEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') numEl.blur();
+        });
+        numEl.addEventListener('change', () => {
+            let val = parseFloat(numEl.value);
+            let min = parseFloat(rangeEl.min);
+            let max = parseFloat(rangeEl.max);
+            if (isNaN(val)) val = min;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            if (allowDecimal) val = Math.round(val * 10) / 10;
+            else val = Math.round(val);
+            numEl.value = val;
+            rangeEl.value = val;
+            applyConfig();
+        });
+        rangeEl.addEventListener('input', () => {
+            numEl.value = rangeEl.value;
+            applyConfig();
+        });
+    }
+
+    syncInputRange(els.valTxt, els.szTxt, true);
+    syncInputRange(els.valDay, els.szDay, true);
+    syncInputRange(els.valDday, els.szDday, true);
+    syncInputRange(els.valBgOp, els.bgOp, false);
