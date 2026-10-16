@@ -8,14 +8,16 @@
     :root {
         --scale: 1; 
         --primary-color: #6366f1;
+        --bg-color: #ffffff; /* 위젯 본체 배경색 복구 */
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
+        --widget-shadow: 0 0.3em 1em rgba(0,0,0,0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 위젯 바깥쪽 배경을 완전히 투명하게 처리 */
+    /* 위젯 바깥쪽 가장자리는 완전 투명 처리 */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
@@ -35,13 +37,13 @@
         padding: 0;
     }
 
-    /* 1. 위젯 본체 배경색 제거 (투명 처리) 및 모서리 곡률 유지 */
+    /* 위젯 본체: 배경색 적용 및 원래의 예쁜 둥근 모서리 유지 */
     .widget-container {
         width: 100%; max-width: 28em; height: 100%;
-        background-color: transparent !important; 
+        background-color: var(--bg-color) !important; /* 본체 배경색 정상 출력 */
         border-radius: 2em; 
         padding: 1.8em; display: flex; flex-direction: column;
-        box-shadow: none; position: relative; overflow: hidden;
+        box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
 
     body.embed-mode .widget-container { max-width: 100%; }
@@ -115,7 +117,7 @@
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    /* 2. 별 아이콘을 오른쪽 끝으로 바짝 밀착 (margin-left: auto 적용) */
+    /* 별 아이콘 오른쪽 끝으로 바짝 밀착 */
     .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; width: 1.5em; height: 1.5em; margin-left: auto; }
     .star-btn.starred { color: #fbbf24; }
 
@@ -164,8 +166,17 @@
         <input type="text" class="setting-input-text" id="inp-title" value="MEMO" placeholder="MEMO">
     </div>
 
-    <div class="setting-group" style="display:none;">
-        <input type="checkbox" id="inp-shadow" checked>
+    <div class="setting-group">
+        <label class="setting-label">그림자 표시</label>
+        <label class="checkbox-wrap">
+            <input type="checkbox" id="inp-shadow" checked style="width:16px; height:16px;"> 그림자 켜기
+        </label>
+    </div>
+
+    <!-- 위젯 본체 배경색 설정 복구 -->
+    <div class="setting-group">
+        <label class="setting-label">위젯 본체 배경색</label>
+        <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
     </div>
 
     <div class="setting-group">
@@ -239,6 +250,7 @@
             header: document.getElementById('widget-header'), 
             titleInput: document.getElementById('inp-title'),
             shadowCheckbox: document.getElementById('inp-shadow'),
+            bgColor: document.getElementById('inp-bg-color'),
             memoBg: document.getElementById('inp-memo-bg'),
             primaryColor: document.getElementById('inp-primary-color'),
             textColor: document.getElementById('inp-text-color')
@@ -361,6 +373,8 @@
         }
 
         function applySettings() {
+            if(els.bgColor) els.root.style.setProperty('--bg-color', els.bgColor.value);
+            if(els.shadowCheckbox) els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 0.3em 1em rgba(0,0,0,0.08)' : 'none');
             if(els.memoBg) els.root.style.setProperty('--memo-bg', els.memoBg.value);
             if(els.primaryColor) els.root.style.setProperty('--primary-color', els.primaryColor.value);
             if(els.textColor) els.root.style.setProperty('--text-color', els.textColor.value);
@@ -373,6 +387,8 @@
                 const url = new URL(window.location.href.split('?')[0]);
                 url.searchParams.set('embed', 'true');
                 if(els.titleInput) url.searchParams.set('title', encodeURIComponent(els.titleInput.value));
+                if(els.shadowCheckbox) url.searchParams.set('sh', els.shadowCheckbox.checked ? '1' : '0');
+                if(els.bgColor) url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
                 if(els.memoBg) url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
                 if(els.primaryColor) url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
                 if(els.textColor) url.searchParams.set('tc', els.textColor.value.replace('#', ''));
@@ -392,6 +408,8 @@
                         els.header.innerText = decodedTitle || 'MEMO';
                         els.titleInput.value = decodedTitle;
                     }
+                    if(params.has('sh') && els.shadowCheckbox) els.shadowCheckbox.checked = params.get('sh') === '1';
+                    if(params.get('bg') && els.bgColor) els.bgColor.value = '#' + params.get('bg');
                     if(params.get('mbg') && els.memoBg) els.memoBg.value = '#' + params.get('mbg');
                     if(params.get('pc') && els.primaryColor) els.primaryColor.value = '#' + params.get('pc');
                     if(params.get('tc') && els.textColor) els.textColor.value = '#' + params.get('tc');
@@ -425,9 +443,10 @@
             updateGeneratedLink();
         });
 
-        [els.memoBg, els.primaryColor, els.textColor].forEach(el => { 
+        [els.bgColor, els.memoBg, els.primaryColor, els.textColor].forEach(el => { 
             if(el) el.addEventListener('input', applySettings); 
         });
+        if(els.shadowCheckbox) els.shadowCheckbox.addEventListener('change', applySettings);
 
         if(els.copyBtn) els.copyBtn.addEventListener('click', () => {
             if(!els.generatedLink) return;
