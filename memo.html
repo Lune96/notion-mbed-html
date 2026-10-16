@@ -8,16 +8,14 @@
     :root {
         --scale: 1; 
         --primary-color: #6366f1;
-        --bg-color: #ffffff; 
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
-        --widget-shadow: 0 0.3em 1em rgba(0,0,0,0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 1. 위젯 밖쪽 배경을 완벽하게 투명하게 처리 (하얀 여백 제거) */
+    /* 위젯 바깥쪽 배경을 완전히 투명하게 처리 */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
@@ -37,13 +35,13 @@
         padding: 0;
     }
 
-    /* 위젯 본체 */
+    /* 1. 위젯 본체 배경색 제거 (투명 처리) 및 모서리 곡률 유지 */
     .widget-container {
         width: 100%; max-width: 28em; height: 100%;
-        background-color: var(--bg-color); 
-        border-radius: 1.5em; 
+        background-color: transparent !important; 
+        border-radius: 2em; 
         padding: 1.8em; display: flex; flex-direction: column;
-        box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
+        box-shadow: none; position: relative; overflow: hidden;
     }
 
     body.embed-mode .widget-container { max-width: 100%; }
@@ -54,7 +52,8 @@
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
     .input-wrapper input {
-        width: 100%; padding: 0.8em 3em 0.8em 1em; border: none; border-radius: 4em;
+        width: 100%; padding: 0.8em 3em 0.8em 1em; border: none; 
+        border-radius: 0.8em; 
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
@@ -64,7 +63,6 @@
         line-height: 0 !important; padding: 0 !important; margin: 0;
     }
 
-    /* 3. + 버튼 크기 축소 및 위치 미세 조정 */
     .add-btn {
         position: absolute; right: 0.6em; width: 1.7em; height: 1.7em; border-radius: 50%;
         background-color: var(--primary-color); color: white; border: none; 
@@ -90,11 +88,12 @@
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
 
-    /* 4. 메모바 모서리 곡률 조정 (완만하지 않고 사각형 느낌이 살짝 나는 라운드) */
+    /* 등록된 메모바: 완만한 라운드 적용 */
     .memo-item {
         display: flex; align-items: center; 
         padding: 0.8em 0.8em 0.8em 1.2em; 
-        background-color: var(--memo-bg); border-radius: 0.8em; 
+        background-color: var(--memo-bg); 
+        border-radius: 0.8em; 
         position: relative; gap: 0.4em; overflow: hidden;
     }
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.4em; }
@@ -116,13 +115,14 @@
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; width: 1.5em; height: 1.5em; margin-left: 0.2em; }
+    /* 2. 별 아이콘을 오른쪽 끝으로 바짝 밀착 (margin-left: auto 적용) */
+    .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; width: 1.5em; height: 1.5em; margin-left: auto; }
     .star-btn.starred { color: #fbbf24; }
 
     .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.4em; width: 1.5em; height: 1.5em; }
     .delete-btn:hover { color: #ef4444; }
 
-    /* 2. S/M/L 사이즈 컨트롤 배경색(박스) 삭제 */
+    /* S/M/L 사이즈 컨트롤 (배경 박스 없음) */
     .size-controls { 
         position: absolute; bottom: 1.2em; right: 1.2em; display: flex; gap: 0.4em; 
         background-color: transparent; padding: 0; 
@@ -133,7 +133,7 @@
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 설정창 UI */
+    /* 모달 설정창 UI */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 100; text-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -164,16 +164,8 @@
         <input type="text" class="setting-input-text" id="inp-title" value="MEMO" placeholder="MEMO">
     </div>
 
-    <div class="setting-group">
-        <label class="setting-label">그림자 표시</label>
-        <label class="checkbox-wrap">
-            <input type="checkbox" id="inp-shadow" checked style="width:16px; height:16px;"> 그림자 켜기
-        </label>
-    </div>
-
-    <div class="setting-group">
-        <label class="setting-label">위젯 본체 배경색</label>
-        <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
+    <div class="setting-group" style="display:none;">
+        <input type="checkbox" id="inp-shadow" checked>
     </div>
 
     <div class="setting-group">
@@ -247,7 +239,6 @@
             header: document.getElementById('widget-header'), 
             titleInput: document.getElementById('inp-title'),
             shadowCheckbox: document.getElementById('inp-shadow'),
-            bgColor: document.getElementById('inp-bg-color'),
             memoBg: document.getElementById('inp-memo-bg'),
             primaryColor: document.getElementById('inp-primary-color'),
             textColor: document.getElementById('inp-text-color')
@@ -370,8 +361,6 @@
         }
 
         function applySettings() {
-            if(els.bgColor) els.root.style.setProperty('--bg-color', els.bgColor.value);
-            if(els.shadowCheckbox) els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 0.3em 1em rgba(0,0,0,0.08)' : 'none');
             if(els.memoBg) els.root.style.setProperty('--memo-bg', els.memoBg.value);
             if(els.primaryColor) els.root.style.setProperty('--primary-color', els.primaryColor.value);
             if(els.textColor) els.root.style.setProperty('--text-color', els.textColor.value);
@@ -384,8 +373,6 @@
                 const url = new URL(window.location.href.split('?')[0]);
                 url.searchParams.set('embed', 'true');
                 if(els.titleInput) url.searchParams.set('title', encodeURIComponent(els.titleInput.value));
-                if(els.shadowCheckbox) url.searchParams.set('sh', els.shadowCheckbox.checked ? '1' : '0');
-                if(els.bgColor) url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
                 if(els.memoBg) url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
                 if(els.primaryColor) url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
                 if(els.textColor) url.searchParams.set('tc', els.textColor.value.replace('#', ''));
@@ -405,8 +392,6 @@
                         els.header.innerText = decodedTitle || 'MEMO';
                         els.titleInput.value = decodedTitle;
                     }
-                    if(params.has('sh') && els.shadowCheckbox) els.shadowCheckbox.checked = params.get('sh') === '1';
-                    if(params.get('bg') && els.bgColor) els.bgColor.value = '#' + params.get('bg');
                     if(params.get('mbg') && els.memoBg) els.memoBg.value = '#' + params.get('mbg');
                     if(params.get('pc') && els.primaryColor) els.primaryColor.value = '#' + params.get('pc');
                     if(params.get('tc') && els.textColor) els.textColor.value = '#' + params.get('tc');
@@ -440,10 +425,9 @@
             updateGeneratedLink();
         });
 
-        [els.bgColor, els.memoBg, els.primaryColor, els.textColor].forEach(el => { 
+        [els.memoBg, els.primaryColor, els.textColor].forEach(el => { 
             if(el) el.addEventListener('input', applySettings); 
         });
-        if(els.shadowCheckbox) els.shadowCheckbox.addEventListener('change', applySize(currentSize)); // 변경 감지 시 유지
 
         if(els.copyBtn) els.copyBtn.addEventListener('click', () => {
             if(!els.generatedLink) return;
