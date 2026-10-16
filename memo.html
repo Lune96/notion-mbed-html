@@ -12,7 +12,7 @@
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
-        --widget-shadow: 0 4px 15px rgba(0,0,0,0.05); /* 그림자 변수 추가 */
+        --widget-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,7 +23,6 @@
         height: 100vh; background-color: transparent; font-size: var(--base-font-size); overflow: hidden;
     }
 
-    /* 노션 임베드 모드: 둥근 모서리와 그림자가 보이도록 약간의 여백 적용 */
     body.embed-mode { padding: 10px; }
 
     .widget-container {
@@ -33,7 +32,6 @@
         box-shadow: var(--widget-shadow); position: relative;
     }
 
-    /* 임베드 모드 시 최대 너비 해제 (가로 100% 채움) + 둥근 모서리 유지 */
     body.embed-mode .widget-container {
         max-width: none; width: 100%; height: 100%;
         padding: 24px;
@@ -52,8 +50,9 @@
 
     .add-btn {
         position: absolute; right: 8px; width: 36px; height: 36px; border-radius: 50%;
-        background-color: var(--primary-color); color: white; border: none; font-size: 1.2em;
+        background-color: var(--primary-color); color: white; border: none; font-size: 1.4em;
         display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.1s;
+        line-height: 1; padding: 0; padding-bottom: 2px;
     }
     .add-btn:active { transform: scale(0.95); }
 
@@ -64,12 +63,12 @@
     }
     .color-circle.active { border: 3px solid #1f2937; transform: scale(1.15); }
     
-    /* 색상 없음(none) 버튼 스타일 */
+    /* 색상 없음(none) 버튼 스타일 - 텍스트 제거 및 사선 처리 */
     .color-circle[data-color="none"] {
-        display: flex; justify-content: center; align-items: center;
-        color: #9ca3af; font-size: 14px; font-weight: bold; border: 1px solid #d1d5db; background-color: #ffffff;
+        background: linear-gradient(to top right, transparent 46%, #d1d5db 46%, #d1d5db 54%, transparent 54%), #ffffff;
+        border: 1px solid #d1d5db;
     }
-    .color-circle[data-color="none"].active { border: 3px solid #1f2937; color: #1f2937; }
+    .color-circle[data-color="none"].active { border: 3px solid #1f2937; }
 
     .memo-list { flex: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
     .memo-list::-webkit-scrollbar { width: 6px; }
@@ -79,32 +78,41 @@
 
     .memo-item {
         display: flex; align-items: center; padding: 12px 12px 12px 20px;
-        background-color: var(--memo-bg); border-radius: 12px;
+        background-color: var(--memo-bg); border-radius: 16px; /* 모서리를 더 둥글게 수정 */
         position: relative; gap: 10px; overflow: hidden;
     }
 
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
 
+    /* 모든 버튼 내부 정렬 고정 */
     .check-btn {
         width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; background: transparent;
         display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; color: white; font-size: 12px;
+        line-height: 1; padding: 0;
     }
     .check-btn.checked { background-color: #cbd5e1; border-color: #cbd5e1; }
 
     .memo-text { flex: 1; font-size: 0.95em; color: var(--text-color); line-height: 1.4; outline: none; word-break: break-word; }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; }
 
-    .star-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; color: #cbd5e1; }
+    .star-btn { 
+        background: transparent; border: none; font-size: 1.3em; cursor: pointer; color: #cbd5e1;
+        display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; line-height: 1; padding: 0;
+    }
     .star-btn.starred { color: #fbbf24; }
 
-    .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.2em; padding: 4px; }
+    .delete-btn { 
+        background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.4em;
+        display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; line-height: 1; padding: 0; padding-bottom: 2px;
+    }
     .delete-btn:hover { color: #ef4444; }
 
     .size-controls { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 6px; background-color: var(--bg-color); border-radius: 15px; padding: 4px; }
     body.embed-mode .size-controls { box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .size-btn {
         width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background-color: white;
-        color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;
+        color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer;
+        display: flex; justify-content: center; align-items: center; line-height: 1; padding: 0;
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
@@ -181,7 +189,7 @@
             <button class="add-btn" id="add-btn">+</button>
         </div>
         <div class="color-picker" id="color-picker">
-            <div class="color-circle active" data-color="none">×</div>
+            <div class="color-circle active" data-color="none"></div>
             <div class="color-circle" style="background-color: #f472b6;" data-color="#f472b6"></div>
             <div class="color-circle" style="background-color: #60a5fa;" data-color="#60a5fa"></div>
             <div class="color-circle" style="background-color: #4ade80;" data-color="#4ade80"></div>
@@ -212,7 +220,7 @@
         primaryColor: document.getElementById('inp-primary-color'), textColor: document.getElementById('inp-text-color')
     };
 
-    let selectedColor = 'none'; // 기본값을 색상 없음으로 설정
+    let selectedColor = 'none'; 
     let memos = [];
     let currentSize = '16';
 
@@ -251,7 +259,6 @@
             const item = document.createElement('div');
             item.className = 'memo-item';
             
-            // 색상 없음(none)일 경우 컬러 바를 렌더링하지 않고 좌측 여백을 줄임
             if (memo.color !== 'none') {
                 const colorBar = document.createElement('div');
                 colorBar.className = 'memo-color-bar';
