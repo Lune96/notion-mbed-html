@@ -20,7 +20,6 @@
         overflow: hidden;
     }
 
-    /* 위젯 레이아웃 */
     #widget-container {
         flex: 1; display: flex; flex-direction: column; justify-content: space-between;
         padding: 5vw 6vw; box-sizing: border-box; background-color: var(--bg-color);
@@ -34,7 +33,6 @@
     .bottom-section { display: flex; align-items: flex-end; justify-content: flex-start; flex: 1; padding-bottom: 2vw; }
     #disp-dday { font-size: var(--dday-size); font-weight: 800; letter-spacing: -0.04em; line-height: 0.9; }
 
-    /* 설정 UI */
     #settings-btn { position: fixed; top: 20px; right: 20px; font-size: 24px; background: transparent; border: none; color: #888; cursor: pointer; z-index: 100; transition: color 0.3s; }
     #settings-btn:hover { color: #333; }
     
@@ -44,25 +42,330 @@
         box-shadow: -4px 0 15px rgba(0,0,0,0.1); z-index: 101; overflow-y: auto;
     }
 
-    /* 그룹화용 배경 박스 */
-    .setting-category {
-        background-color: #f7f7f7; border: 1px solid #ececec; border-radius: 12px;
-        padding: 18px 15px; margin-bottom: 20px;
-    }
+    .setting-category { background-color: #f7f7f7; border: 1px solid #ececec; border-radius: 12px; padding: 18px 15px; margin-bottom: 20px; }
     .setting-category .setting-group { margin-bottom: 15px; }
     .setting-category .setting-group:last-child { margin-bottom: 0; }
     .setting-label { font-size: 13px; color: #333; margin-bottom: 8px; display: block; font-weight: 500; }
     
-    /* 바 형태의 입력창 스타일 */
-    .input-bar {
-        background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;
-        padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    .input-bar { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .input-bar input[type="text"], .input-bar input[type="date"], .format-select { border: none; background: transparent; outline: none; font-size: 14px; color: #333; flex: 1; font-weight: 500; font-family: inherit; cursor: pointer; }
+    .input-bar input[type="color"] { border: none; background: transparent; width: 28px; height: 28px; padding: 0; cursor: pointer; border-radius: 4px; }
+    .input-bar input[type="range"] { flex: 1; accent-color: #555; height: 4px; border-radius: 2px; margin-right: 10px; }
+
+    .num-input-wrap { display: flex; align-items: center; justify-content: flex-end; width: 75px; }
+    .num-input { width: 45px; background-color: #f4f4f4; border: 1px solid #c0c0c0; border-radius: 4px; padding: 4px 6px; text-align: right; font-size: 13px; color: #333; font-weight: 600; outline: none; font-family: inherit; -moz-appearance: textfield; transition: border-color 0.2s, background-color 0.2s; }
+    .num-input:focus { border-color: #888; background-color: #ffffff; }
+    .num-input::-webkit-outer-spin-button, .num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .unit { font-size: 13px; color: #666; font-weight: 600; margin-left: 4px; }
+
+    .close-btn { background: #111; color: #fff; border: none; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 25px; width: 100%; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+    
+    .link-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 25px; }
+    .link-title { font-size: 11px; color: #888; font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .link-box { display: flex; align-items: stretch; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background: #fff; height: 40px; }
+    .notion-icon { background: #fff; padding: 0 12px; display: flex; align-items: center; font-weight: bold; font-size: 16px; border-right: 1px solid #eee; }
+    #generated-link { flex-grow: 1; border: none; padding: 0 12px; font-size: 12px; color: #333; outline: none; background: #f9f9f9; }
+    #copy-btn { background: #111; color: #fff; border: none; padding: 0 16px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+    <button id="settings-btn">⚙️</button>
+    
+    <div id="settings-modal">
+        <button class="close-btn" id="close-settings">Close</button>
+        
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Text</label>
+                <div class="input-bar"><input type="text" id="inp-text" value="Text"></div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">Text Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-txt" min="0.1" max="50" step="0.1" value="8">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-txt" class="num-input" value="8" min="0.1" max="50" step="0.1">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Text Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-txt-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-txt-color" value="#000000">
+                </div>
+            </div>
+        </div>
+        
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Date</label>
+                <div class="input-bar"><input type="date" id="inp-day" value="2000-01-01"></div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Date Format</label>
+                <div class="input-bar">
+                    <select id="inp-date-format" class="format-select">
+                        <option value="yyyy-mm-dd" selected>yyyy-mm-dd</option>
+                        <option value="yyyy_mm_dd">yyyy_mm_dd</option>
+                        <option value="yyyy/mm/dd">yyyy/mm/dd</option>
+                        <option value="yyyy.mm.dd">yyyy.mm.dd</option>
+                        <option value="yyyymmdd">yyyymmdd</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Date Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-day" min="0.1" max="50" step="0.1" value="7">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-day" class="num-input" value="7" min="0.1" max="50" step="0.1">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">D-day Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-dday" min="0.1" max="50" step="0.1" value="24">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-dday" class="num-input" value="24" min="0.1" max="50" step="0.1">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Background Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-bg-hex" value="#FFFFFF" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-bg-color" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Background Opacity</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-bg-op" min="0" max="100" step="1" value="100">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-bg-op" class="num-input" value="100" min="0" max="100" step="1">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="link-section">
+            <div class="link-title">COPY LINK, PASTE INTO NOTION, AND CLICK 'EMBED'</div>
+            <div class="link-box">
+                <div class="notion-icon">N</div>
+                <input type="text" id="generated-link" readonly>
+                <button id="copy-btn" title="Copy to clipboard">📋</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 위젯 출력 영역 -->
+    <div id="widget-container">
+        <div class="top-section">
+            <div id="disp-text">Text</div>
+            <div id="disp-day">2000-01-01</div>
+        </div>
+        <div class="bottom-section">
+            <div id="disp-dday">D-Day</div>
+        </div>
+    </div>
+
+<script>
+    const els = {
+        inpText: document.getElementById('inp-text'), inpDay: document.getElementById('inp-day'),
+        selFormat: document.getElementById('inp-date-format'),
+        szTxt: document.getElementById('inp-sz-txt'), szDay: document.getElementById('inp-sz-day'), szDday: document.getElementById('inp-sz-dday'),
+        valTxt: document.getElementById('inp-val-txt'), valDay: document.getElementById('inp-val-day'), valDday: document.getElementById('inp-val-dday'),
+        bgHex: document.getElementById('inp-bg-hex'), bgColor: document.getElementById('inp-bg-color'),
+        bgOp: document.getElementById('inp-bg-op'), valBgOp: document.getElementById('inp-val-bg-op'),
+        txtHex: document.getElementById('inp-txt-hex'), txtColor: document.getElementById('inp-txt-color'),
+        dispText: document.getElementById('disp-text'), dispDay: document.getElementById('disp-day'), dispDday: document.getElementById('disp-dday'),
+        settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
+        closeSettings: document.getElementById('close-settings'), generatedLink: document.getElementById('generated-link'), copyBtn: document.getElementById('copy-btn')
+    };
+
+    function hexToRgba(hex, opacity) {
+        hex = hex.replace('#', '');
+        if(hex.length === 3) hex = hex.split('').map(char => char + char).join('');
+        const r = parseInt(hex.slice(0, 2), 16) || 0;
+        const g = parseInt(hex.slice(2, 4), 16) || 0;
+        const b = parseInt(hex.slice(4, 6), 16) || 0;
+        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
     }
-    .input-bar input[type="text"], .input-bar input[type="date"], .format-select {
-        border: none; background: transparent; outline: none; font-size: 14px; color: #333; flex: 1; font-weight: 500; font-family: inherit; cursor: pointer;
+
+    function updateDdayCalc() {
+        const dateVal = els.inpDay.value;
+        if (!dateVal) {
+            els.dispDay.innerText = "";
+            els.dispDday.innerText = "D-?";
+            return;
+        }
+
+        const parts = dateVal.split('-');
+        const y = parts[0];
+        const m = parts[1];
+        const d = parts[2];
+        
+        let formatStr = els.selFormat.value;
+        let displayStr = formatStr.replace('yyyy', y).replace('mm', m).replace('dd', d);
+        els.dispDay.innerText = displayStr;
+
+        const targetDate = new Date(y, parseInt(m) - 1, d);
+        if (isNaN(targetDate.getTime())) {
+            els.dispDday.innerText = "D-?";
+            return;
+        }
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const diffTime = today - targetDate;
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays >= 0) {
+            els.dispDday.innerText = "D+" + diffDays;
+        } else {
+            els.dispDday.innerText = "D" + diffDays;
+        }
     }
-    .input-bar input[type="color"] {
-        border: none; background: transparent; width: 28px; height: 28px; padding: 0; cursor: pointer; border-radius: 4px;
+
+    function loadConfigFromURL() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (Array.from(params.keys()).length === 0) return false;
+
+            els.inpText.value = params.get('txt') || 'Text';
+            els.inpDay.value = params.get('day') || '2000-01-01';
+            if(params.get('df')) els.selFormat.value = params.get('df');
+            
+            els.szTxt.value = params.get('st') || '8';
+            els.valTxt.value = params.get('st') || '8';
+            els.szDay.value = params.get('sd') || '7';
+            els.valDay.value = params.get('sd') || '7';
+            els.szDday.value = params.get('sdd') || '24';
+            els.valDday.value = params.get('sdd') || '24';
+            
+            const bHex = '#' + (params.get('bc') || 'FFFFFF');
+            els.bgHex.value = bHex; els.bgColor.value = bHex.toLowerCase();
+            els.bgOp.value = params.get('bo') || '100';
+            els.valBgOp.value = params.get('bo') || '100';
+            
+            const tHex = '#' + (params.get('tc') || '000000');
+            els.txtHex.value = tHex; els.txtColor.value = tHex.toLowerCase();
+        } catch(e) {}
     }
-    .input-bar input[type="range"] {
-        flex: 1; accent-color: #555; height: 4px; border-radius: 2px; margin-
+
+    function updateGeneratedLink() {
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('txt', els.inpText.value);
+            url.searchParams.set('day', els.inpDay.value);
+            url.searchParams.set('df', els.selFormat.value);
+            url.searchParams.set('st', els.szTxt.value);
+            url.searchParams.set('sd', els.szDay.value);
+            url.searchParams.set('sdd', els.szDday.value);
+            url.searchParams.set('bc', els.bgHex.value.replace('#', ''));
+            url.searchParams.set('bo', els.bgOp.value);
+            url.searchParams.set('tc', els.txtHex.value.replace('#', ''));
+            els.generatedLink.value = url.href;
+        } catch(e) {}
+    }
+
+    function applyConfig() {
+        els.dispText.innerText = els.inpText.value;
+        updateDdayCalc();
+
+        els.valTxt.value = els.szTxt.value;
+        els.valDay.value = els.szDay.value;
+        els.valDday.value = els.szDday.value;
+        els.valBgOp.value = els.bgOp.value;
+
+        document.documentElement.style.setProperty('--txt-size', els.szTxt.value + 'vw');
+        document.documentElement.style.setProperty('--day-size', els.szDay.value + 'vw');
+        document.documentElement.style.setProperty('--dday-size', els.szDday.value + 'vw');
+        document.documentElement.style.setProperty('--text-color', els.txtHex.value);
+        document.documentElement.style.setProperty('--bg-color', hexToRgba(els.bgHex.value, els.bgOp.value));
+
+        updateGeneratedLink();
+    }
+
+    function syncInputRange(numEl, rangeEl, allowDecimal) {
+        numEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') numEl.blur();
+        });
+
+        numEl.addEventListener('change', () => {
+            let val = parseFloat(numEl.value);
+            let min = parseFloat(rangeEl.min);
+            let max = parseFloat(rangeEl.max);
+            
+            if (isNaN(val)) val = min;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            
+            if (allowDecimal) {
+                val = Math.round(val * 10) / 10;
+            } else {
+                val = Math.round(val);
+            }
+            
+            numEl.value = val;
+            rangeEl.value = val;
+            applyConfig();
+        });
+
+        rangeEl.addEventListener('input', () => {
+            numEl.value = rangeEl.value;
+            applyConfig();
+        });
+    }
+
+    syncInputRange(els.valTxt, els.szTxt, true);
+    syncInputRange(els.valDay, els.szDay, true);
+    syncInputRange(els.valDday, els.szDday, true);
+    syncInputRange(els.valBgOp, els.bgOp, false);
+
+    ['change', 'input'].forEach(evt => {
+        [els.inpText, els.inpDay, els.selFormat].forEach(el => {
+            el.addEventListener(evt, applyConfig);
+        });
+
+        els.bgColor.addEventListener(evt, (e) => { els.bgHex.value = e.target.value.toUpperCase(); applyConfig(); });
+        els.bgHex.addEventListener(evt, (e) => { els.bgColor.value = e.target.value; applyConfig(); });
+        els.txtColor.addEventListener(evt, (e) => { els.txtHex.value = e.target.value.toUpperCase(); applyConfig(); });
+        els.txtHex.addEventListener(evt, (e) => { els.txtColor.value = e.target.value; applyConfig(); });
+    });
+
+    els.copyBtn.addEventListener('click', () => {
+        els.generatedLink.select();
+        document.execCommand('copy');
+        const originalText = els.copyBtn.innerText;
+        els.copyBtn.innerText = '✓';
+        setTimeout(() => els.copyBtn.innerText = originalText, 1500);
+    });
+
+    els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
+    els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
+
+    setInterval(updateDdayCalc, 60000); 
+
+    loadConfigFromURL();
+    applyConfig();
+</script>
+</body>
+</html>
