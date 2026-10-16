@@ -59,7 +59,7 @@
     
     /* 바 형태의 입력창 스타일 */
     .input-bar {
-        background-color: #ffffff; /* 그룹 배경과 대비되도록 흰색으로 변경 */
+        background-color: #ffffff;
         border: 1px solid #e0e0e0;
         border-radius: 8px; padding: 12px 15px;
         display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -93,7 +93,6 @@
     <div id="settings-modal">
         <button class="close-btn" id="close-settings">Close</button>
         
-        <!-- Text 관련 설정 그룹 -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Text</label>
@@ -117,7 +116,6 @@
             </div>
         </div>
         
-        <!-- Day 관련 설정 그룹 -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Day</label>
@@ -141,7 +139,6 @@
             </div>
         </div>
 
-        <!-- Background 관련 설정 그룹 -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Background Color</label>
@@ -230,3 +227,84 @@
 
     function loadConfigFromURL() {
         try {
+            const params = new URLSearchParams(window.location.search);
+            if (Array.from(params.keys()).length === 0) return false;
+
+            els.inpText.value = params.get('txt') || 'Text';
+            els.inpDay.value = params.get('day') || '2000-01-01';
+            els.szTxt.value = params.get('st') || '8';
+            els.szDay.value = params.get('sd') || '7';
+            els.szDday.value = params.get('sdd') || '24';
+            
+            const bHex = '#' + (params.get('bc') || 'FFFFFF');
+            els.bgHex.value = bHex; els.bgColor.value = bHex.toLowerCase();
+            els.bgOp.value = params.get('bo') || '100';
+            
+            const tHex = '#' + (params.get('tc') || '000000');
+            els.txtHex.value = tHex; els.txtColor.value = tHex.toLowerCase();
+        } catch(e) {}
+    }
+
+    function updateGeneratedLink() {
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('txt', els.inpText.value);
+            url.searchParams.set('day', els.inpDay.value);
+            url.searchParams.set('st', els.szTxt.value);
+            url.searchParams.set('sd', els.szDay.value);
+            url.searchParams.set('sdd', els.szDday.value);
+            url.searchParams.set('bc', els.bgHex.value.replace('#', ''));
+            url.searchParams.set('bo', els.bgOp.value);
+            url.searchParams.set('tc', els.txtHex.value.replace('#', ''));
+            els.generatedLink.value = url.href;
+        } catch(e) {}
+    }
+
+    function applyConfig() {
+        els.dispText.innerText = els.inpText.value;
+        updateDdayCalc();
+
+        els.valTxt.innerText = els.szTxt.value + 'vw';
+        els.valDay.innerText = els.szDay.value + 'vw';
+        els.valDday.innerText = els.szDday.value + 'vw';
+        els.valBgOp.innerText = els.bgOp.value + '%';
+
+        document.documentElement.style.setProperty('--txt-size', els.szTxt.value + 'vw');
+        document.documentElement.style.setProperty('--day-size', els.szDay.value + 'vw');
+        document.documentElement.style.setProperty('--dday-size', els.szDday.value + 'vw');
+        document.documentElement.style.setProperty('--text-color', els.txtHex.value);
+        document.documentElement.style.setProperty('--bg-color', hexToRgba(els.bgHex.value, els.bgOp.value));
+
+        updateGeneratedLink();
+    }
+
+    ['change', 'input'].forEach(evt => {
+        [els.inpText, els.inpDay, els.szTxt, els.szDay, els.szDday, els.bgOp].forEach(el => {
+            el.addEventListener(evt, applyConfig);
+        });
+
+        els.bgColor.addEventListener(evt, (e) => { els.bgHex.value = e.target.value.toUpperCase(); applyConfig(); });
+        els.bgHex.addEventListener(evt, (e) => { els.bgColor.value = e.target.value; applyConfig(); });
+        els.txtColor.addEventListener(evt, (e) => { els.txtHex.value = e.target.value.toUpperCase(); applyConfig(); });
+        els.txtHex.addEventListener(evt, (e) => { els.txtColor.value = e.target.value; applyConfig(); });
+    });
+
+    els.copyBtn.addEventListener('click', () => {
+        els.generatedLink.select();
+        document.execCommand('copy');
+        const originalText = els.copyBtn.innerText;
+        els.copyBtn.innerText = '✓';
+        setTimeout(() => els.copyBtn.innerText = originalText, 1500);
+    });
+
+    // 설정 버튼 항상 활성화 (제한 해제)
+    els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
+    els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
+
+    setInterval(updateDdayCalc, 60000); 
+
+    loadConfigFromURL();
+    applyConfig();
+</script>
+</body>
+</html>
