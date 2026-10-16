@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memo Widget</title>
+<title>Custom Memo Widget</title>
 <style>
     :root {
         --base-font-size: 16px;
@@ -22,6 +22,12 @@
         height: 100vh; background-color: transparent; font-size: var(--base-font-size); overflow: hidden;
     }
 
+    /* 노션 임베드 모드일 때 꽉 차게 변경하는 클래스 */
+    body.embed-mode {
+        display: block;
+        background-color: var(--bg-color);
+    }
+
     .widget-container {
         width: 100%; max-width: 450px; height: 100vh;
         background-color: var(--bg-color); border-radius: 24px;
@@ -29,12 +35,17 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative;
     }
 
-    .header { font-size: 1.75em; font-weight: 800; color: var(--text-color); margin-bottom: 20px; letter-spacing: -0.02em; }
+    /* 임베드 모드 시 위젯 컨테이너 설정 초기화 (100% 채움) */
+    body.embed-mode .widget-container {
+        max-width: 100%; border-radius: 0; box-shadow: none; padding: 20px;
+        background-color: transparent;
+    }
+
+    .header { font-size: 1.75em; font-weight: 800; color: var(--text-color); margin-bottom: 20px; letter-spacing: -0.02em; word-break: break-all; }
 
     .input-section { margin-bottom: 20px; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 12px; }
     
-    /* 5. 묶음 색상 적용: 입력창과 메모 배경을 --memo-bg로 통일 */
     .input-wrapper input {
         width: 100%; padding: 16px 50px 16px 20px; border: none; border-radius: 100px;
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
@@ -53,7 +64,6 @@
         width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
         border: 2px solid transparent; transition: transform 0.2s;
     }
-    /* 1. 누른 색상에 검정 동그라미(테두리) 생성 */
     .color-circle.active { border: 3px solid #1f2937; transform: scale(1.15); }
     .color-circle[data-color="#ffffff"] { border: 1px solid #d1d5db; }
     .color-circle[data-color="#ffffff"].active { border: 3px solid #1f2937; }
@@ -70,23 +80,17 @@
         position: relative; gap: 10px; overflow: hidden;
     }
 
-    /* 1. 메모 앞쪽 색상 표시 바 */
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
 
-    /* 4. 체크 버튼 */
     .check-btn {
         width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; background: transparent;
         display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; color: white; font-size: 12px;
     }
     .check-btn.checked { background-color: #cbd5e1; border-color: #cbd5e1; }
 
-    /* 3. 텍스트 수정 가능 영역 */
     .memo-text { flex: 1; font-size: 0.95em; color: var(--text-color); line-height: 1.4; outline: none; word-break: break-word; }
-    
-    /* 4. 체크 시 글씨 연해지고 줄 그어짐 */
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; }
 
-    /* 2. 별 버튼 */
     .star-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; color: #cbd5e1; }
     .star-btn.starred { color: #fbbf24; }
 
@@ -94,13 +98,16 @@
     .delete-btn:hover { color: #ef4444; }
 
     .size-controls { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 6px; background-color: var(--bg-color); border-radius: 15px; padding: 4px; }
+    /* 임베드 모드일 때 사이즈 버튼 배경도 알맞게 조정 */
+    body.embed-mode .size-controls { box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
     .size-btn {
         width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background-color: white;
         color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 5. 설정창 UI */
+    /* 설정창 UI */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 22px; background: none; border: none; cursor: pointer; z-index: 100; }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -109,6 +116,8 @@
     .setting-group { margin-bottom: 20px; }
     .setting-label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
     .setting-input { width: 100%; height: 40px; border: none; cursor: pointer; padding: 0; }
+    .setting-input-text { width: 100%; height: 38px; border: 1px solid #ddd; border-radius: 6px; padding: 0 10px; font-size: 14px; outline: none; font-family: inherit; }
+    .setting-input-text:focus { border-color: #6366f1; }
     .close-btn { background: #111; color: #fff; border: none; padding: 10px; cursor: pointer; border-radius: 6px; width: 100%; font-weight: bold; margin-bottom: 20px; }
     .link-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
     .link-box { display: flex; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-top: 8px; }
@@ -123,6 +132,11 @@
 <div id="settings-modal">
     <button class="close-btn" id="close-settings">닫기</button>
     
+    <div class="setting-group">
+        <label class="setting-label">위젯 제목</label>
+        <input type="text" class="setting-input-text" id="inp-title" value="MEMO" placeholder="MEMO">
+    </div>
+
     <div class="setting-group">
         <label class="setting-label">위젯 전체 배경색</label>
         <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
@@ -141,7 +155,7 @@
     </div>
 
     <div class="link-section">
-        <label class="setting-label">노션 임베드용 링크 (사용 시 설정창 자동 숨김)</label>
+        <label class="setting-label">노션 임베드용 링크 (사용 시 화면 꽉참 & 설정창 숨김)</label>
         <div class="link-box">
             <input type="text" id="generated-link" readonly>
             <button id="copy-btn">복사</button>
@@ -150,7 +164,7 @@
 </div>
 
 <div class="widget-container">
-    <div class="header">MEMO</div>
+    <div class="header" id="widget-header">MEMO</div>
     
     <div class="input-section">
         <div class="input-wrapper">
@@ -183,7 +197,7 @@
         sizeBtns: document.querySelectorAll('.size-btn'), root: document.documentElement,
         settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
         closeSettings: document.getElementById('close-settings'), generatedLink: document.getElementById('generated-link'),
-        copyBtn: document.getElementById('copy-btn'),
+        copyBtn: document.getElementById('copy-btn'), header: document.getElementById('widget-header'), titleInput: document.getElementById('inp-title'),
         bgColor: document.getElementById('inp-bg-color'), memoBg: document.getElementById('inp-memo-bg'),
         primaryColor: document.getElementById('inp-primary-color'), textColor: document.getElementById('inp-text-color')
     };
@@ -192,7 +206,6 @@
     let memos = [];
     let currentSize = '16';
 
-    // 에러 방지를 위해 새로운 키(custom_memos_vfinal) 사용 및 예외 처리
     try {
         const stored = localStorage.getItem('custom_memos_vfinal');
         if (stored) memos = JSON.parse(stored);
@@ -218,7 +231,6 @@
             return;
         }
 
-        // 2. 별을 누른 메모 최상단 정렬 (이후 최신순 정렬)
         const sortedMemos = [...memos].sort((a, b) => {
             if (a.isStarred && !b.isStarred) return -1;
             if (!a.isStarred && b.isStarred) return 1;
@@ -229,18 +241,15 @@
             const item = document.createElement('div');
             item.className = 'memo-item';
             
-            // 1. 메모 앞쪽 색상
             const colorBar = document.createElement('div');
             colorBar.className = 'memo-color-bar';
             colorBar.style.backgroundColor = memo.color === '#ffffff' ? '#e5e7eb' : memo.color;
 
-            // 4. 체크 버튼
             const checkBtn = document.createElement('button');
             checkBtn.className = `check-btn ${memo.isChecked ? 'checked' : ''}`;
             checkBtn.innerHTML = memo.isChecked ? '✓' : '';
             checkBtn.onclick = () => toggleCheck(memo.id);
 
-            // 3. 텍스트 수정 가능 (contenteditable)
             const text = document.createElement('div');
             text.className = `memo-text ${memo.isChecked ? 'checked-text' : ''}`;
             text.contentEditable = true;
@@ -248,7 +257,6 @@
             text.onblur = (e) => updateMemoText(memo.id, e.target.innerText);
             text.onkeydown = (e) => { if(e.key === 'Enter') { e.preventDefault(); text.blur(); } };
 
-            // 2. 별 버튼
             const starBtn = document.createElement('button');
             starBtn.className = `star-btn ${memo.isStarred ? 'starred' : ''}`;
             starBtn.innerHTML = memo.isStarred ? '★' : '☆';
@@ -311,7 +319,6 @@
         try { localStorage.setItem('custom_memo_size_final', size); } catch(e) {}
     }
 
-    // 색상 선택 시 검정 동그라미 적용
     els.colorCircles.forEach(circle => {
         circle.addEventListener('click', (e) => {
             els.colorCircles.forEach(c => c.classList.remove('active'));
@@ -324,11 +331,15 @@
     els.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addMemo(); });
     els.sizeBtns.forEach(btn => { btn.addEventListener('click', (e) => applySize(e.target.dataset.size)); });
 
-    // 설정창 열기 / 닫기
     els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
     els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
 
-    // 색상 묶음 실시간 적용
+    // 타이틀 실시간 적용
+    els.titleInput.addEventListener('input', (e) => {
+        els.header.innerText = e.target.value || 'MEMO';
+        updateGeneratedLink();
+    });
+
     function applyColors() {
         els.root.style.setProperty('--bg-color', els.bgColor.value);
         els.root.style.setProperty('--memo-bg', els.memoBg.value);
@@ -341,23 +352,32 @@
         el.addEventListener('input', applyColors);
     });
 
-    // 5. 노션용 URL 생성 로직
     function updateGeneratedLink() {
-        const url = new URL(window.location.href.split('?')[0]);
-        url.searchParams.set('embed', 'true');
-        url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
-        url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
-        url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
-        url.searchParams.set('tc', els.textColor.value.replace('#', ''));
-        els.generatedLink.value = url.href;
+        try {
+            const url = new URL(window.location.href.split('?')[0]);
+            url.searchParams.set('embed', 'true');
+            // 제목도 인코딩하여 저장
+            url.searchParams.set('title', encodeURIComponent(els.titleInput.value));
+            url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
+            url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
+            url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
+            url.searchParams.set('tc', els.textColor.value.replace('#', ''));
+            els.generatedLink.value = url.href;
+        } catch(e) {}
     }
 
-    // 5. 노션 링크로 들어왔을 때 설정창 숨기기 및 색상 로드
     function loadConfigFromURL() {
         try {
             const params = new URLSearchParams(window.location.search);
             if (params.get('embed') === 'true') {
-                els.settingsBtn.style.display = 'none';
+                els.settingsBtn.style.display = 'none'; // 설정버튼 숨김
+                document.body.classList.add('embed-mode'); // 화면 꽉 참 모드 활성화
+                
+                if(params.get('title')) {
+                    const decodedTitle = decodeURIComponent(params.get('title'));
+                    els.header.innerText = decodedTitle || 'MEMO';
+                    els.titleInput.value = decodedTitle;
+                }
                 if(params.get('bg')) els.root.style.setProperty('--bg-color', '#' + params.get('bg'));
                 if(params.get('mbg')) els.root.style.setProperty('--memo-bg', '#' + params.get('mbg'));
                 if(params.get('pc')) els.root.style.setProperty('--primary-color', '#' + params.get('pc'));
