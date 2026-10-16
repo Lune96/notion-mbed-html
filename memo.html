@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark"> <!-- 배경 투명화 핵심 -->
 <title>Custom Memo Widget</title>
 <style>
     :root {
-        --font-scale: 1; /* S, M, L 버튼을 통한 비율 조절 변수 */
+        --scale: 1; /* S, M, L 비율 계수 */
         --primary-color: #6366f1;
-        --bg-color: #ffffff; /* 위젯 본체 색상 */
+        --bg-color: #ffffff; /* 위젯 본체 색상 (사진의 빨간색 영역) */
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
@@ -17,62 +18,68 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 1. 위젯 밖쪽 배경은 항상 투명하게 설정 */
-    body {
+    /* 1. 위젯 밖(가장자리) 배경은 완벽하게 투명하게 뚫어둠 */
+    html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        background-color: transparent !important;
-        margin: 0; overflow: hidden;
-        height: 100vh; width: 100vw;
+        background-color: transparent !important; 
+        margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
     }
 
-    /* 반응형 스케일링을 관리하는 래퍼 (가장 안전하고 완벽한 비율 유지 방식) */
-    .scale-wrapper {
-        /* 화면 폭(vw)에 맞춰 모든 요소의 크기가 변하며 S/M/L 배율 동시 적용 */
-        font-size: calc(clamp(11px, 3.5vw, 16px) * var(--font-scale));
-        width: 100%; height: 100%;
+    /* 3. 최신 CSS 속성 (container-type, cqi) 적용 래퍼 */
+    .app-wrapper {
+        container-type: inline-size; /* 컨테이너 가로폭 기준 스케일링 */
+        width: 100vw; height: 100vh;
+        max-width: 450px; max-height: 800px;
+        margin: 0 auto;
         display: flex; justify-content: center; align-items: center;
-        /* 노션 임베드 시 둥근 모서리가 잘리지 않도록 안전 여백 제공 */
-        padding: 1.5em; 
+        /* 위젯 바깥 그림자와 둥근 모서리를 지키기 위한 투명 여백 */
+        padding: 4cqi; 
     }
 
-    body.embed-mode .scale-wrapper {
-        /* 임베드 모드 전용 폰트 스케일 기준 변경 */
-        font-size: calc(clamp(10px, 4vw, 20px) * var(--font-scale));
+    /* 노션 임베드 시에는 최대 가로폭을 풀어서 자유롭게 크기 조절 */
+    body.embed-mode .app-wrapper {
+        max-width: 100%; max-height: 100vh;
     }
 
-    /* 3. 위젯 본체 (끝이 둥그런 네모 모양 완벽 유지) */
+    /* 위젯 본체 (모든 내부 크기는 em으로 설정되어 100% 같이 커지고 작아짐) */
     .widget-container {
-        width: 100%; max-width: 28em; height: 100%;
+        width: 100%; height: 100%;
         background-color: var(--bg-color); 
-        border-radius: 2em; /* 둥근 모서리 설정 */
-        padding: 1.8em; display: flex; flex-direction: column;
+        border-radius: 2em; /* 둥근 모서리 */
+        padding: 1.5em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
+        
+        /* 핵심 반응형: 가로폭(cqi) * 사용자가 선택한 스케일(S,M,L) */
+        font-size: calc(3.8cqi * var(--scale));
     }
 
-    body.embed-mode .widget-container { max-width: 100%; }
-
-    .header { font-size: 1.75em; font-weight: 900; color: var(--text-color); margin-bottom: 1.2em; letter-spacing: -0.02em; word-break: break-all; }
+    .header { font-size: 1.6em; font-weight: 900; color: var(--text-color); margin-bottom: 1em; letter-spacing: -0.02em; word-break: break-all; }
 
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
+    /* 4. 메모 입력창 및 +버튼 축소 */
     .input-wrapper input {
-        width: 100%; padding: 1em 3.5em 1em 1.2em; border: none; border-radius: 6em;
+        width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; border-radius: 4em;
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
 
-    /* 모든 아이콘(버튼) 1px 오차 없이 중앙 정렬 */
+    /* 모든 아이콘(버튼) 오차 없이 중앙 정렬 */
     .center-icon {
         display: flex; justify-content: center; align-items: center; 
         line-height: 0 !important; padding: 0 !important; margin: 0;
     }
 
+    /* 4. + 버튼 크기 축소 */
     .add-btn {
-        position: absolute; right: 0.6em; width: 2.2em; height: 2.2em; border-radius: 50%;
+        position: absolute; right: 0.6em; 
+        width: 1.8em; height: 1.8em; /* 크기 축소 */
+        border-radius: 50%;
         background-color: var(--primary-color); color: white; border: none; 
-        font-size: 1.3em; cursor: pointer; transition: transform 0.1s;
+        font-size: 1em; cursor: pointer; transition: transform 0.1s;
     }
+    .add-btn span { font-size: 1.3em; margin-bottom: 0.1em; } /* 안의 + 기호 크기 및 정렬 */
     .add-btn:active { transform: scale(0.95); }
 
     .color-picker { display: flex; gap: 0.4em; padding: 0 0.8em; }
@@ -80,24 +87,23 @@
         width: 0.9em; height: 0.9em; border-radius: 50%; cursor: pointer;
         border: max(1px, 0.08em) solid transparent; transition: transform 0.2s;
     }
-    .color-circle.active { border: max(2px, 0.15em) solid #1f2937; transform: scale(1.15); }
+    .color-circle.active { border: max(2px, 0.12em) solid #1f2937; transform: scale(1.15); }
     
-    /* 색상 없음(none) 버튼: 부드러운 회색 사선(대각선) 처리 */
+    /* 색상 없음(none) 버튼: 부드러운 회색 사선(대각선) */
     .color-circle[data-color="none"] {
         background: linear-gradient(to top right, transparent 46%, #d1d5db 46%, #d1d5db 54%, transparent 54%), #ffffff;
         border: max(1px, 0.08em) solid #d1d5db;
     }
-    .color-circle[data-color="none"].active { border: max(2px, 0.15em) solid #1f2937; }
+    .color-circle[data-color="none"].active { border: max(2px, 0.12em) solid #1f2937; }
 
     .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; padding-bottom: 3.5em; padding-right: 0.4em; }
     .memo-list::-webkit-scrollbar { width: 0.4em; }
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
-    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
+    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
-    /* 2. 메모 아이템 (체크박스 위치 고정) */
     .memo-item {
         display: flex; align-items: center; 
-        /* 색상 띠가 있든 없든 왼쪽 패딩을 동일하게 1.2em으로 고정하여 밀림 현상 완벽 방지 */
+        /* 왼쪽 패딩을 고정하여 색상 유무와 무관하게 체크박스 위치 단단히 고정 */
         padding: 0.8em 0.8em 0.8em 1.2em; 
         background-color: var(--memo-bg); border-radius: 1.2em; 
         position: relative; gap: 0.6em; overflow: hidden;
@@ -119,19 +125,17 @@
     .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.4em; width: 1.5em; height: 1.5em; }
     .delete-btn:hover { color: #ef4444; }
 
-    /* S/M/L 사이즈 컨트롤 */
+    /* 2. S/M/L 사이즈 버튼을 감싸던 배경색 및 패딩 삭제 */
     .size-controls { 
-        position: absolute; bottom: 1.5em; right: 1.5em; display: flex; gap: 0.4em; 
-        background-color: var(--memo-bg); border-radius: 1em; padding: 0.3em; 
+        position: absolute; bottom: 1.2em; right: 1.2em; display: flex; gap: 0.4em; 
     }
-    body.embed-mode .size-controls { box-shadow: 0 0.2em 0.8em rgba(0,0,0,0.05); }
     .size-btn {
-        width: 1.8em; height: 1.8em; border-radius: 50%; border: max(1px, 0.08em) solid var(--border-color); background-color: white;
+        width: 2em; height: 2em; border-radius: 50%; border: max(1px, 0.08em) solid var(--border-color); background-color: white;
         color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer;
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 설정창 UI (비율 적용 안받고 px로 고정) */
+    /* 모달 설정창 UI (비율에 영향받지 않도록 px로 안전 고정) */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 100; text-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -170,7 +174,7 @@
     </div>
 
     <div class="setting-group">
-        <label class="setting-label">위젯 전체 배경색</label>
+        <label class="setting-label">위젯 본체 배경색</label>
         <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
     </div>
 
@@ -196,16 +200,16 @@
     </div>
 </div>
 
-<div class="scale-wrapper">
-    <div class="widget-container">
+<div class="app-wrapper">
+    <div class="widget-container" id="widget-container">
         <div class="header" id="widget-header">MEMO</div>
         
         <div class="input-section">
             <div class="input-wrapper">
                 <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
-                <button class="add-btn center-icon" id="add-btn">+</button>
+                <button class="add-btn center-icon" id="add-btn"><span>+</span></button>
             </div>
-            <!-- 파스텔 톤 색상 버튼 -->
+            <!-- 파스텔 톤 7가지 색상 -->
             <div class="color-picker" id="color-picker">
                 <div class="color-circle center-icon active" data-color="none"></div>
                 <div class="color-circle" style="background-color: #f87b9c;" data-color="#f87b9c"></div>
@@ -227,8 +231,8 @@
     </div>
 </div>
 
+<!-- 스크립트 충돌 원천 차단: 즉시 실행 구조 적용 -->
 <script>
-// 오류 없는 스크립트 실행을 위해 즉시실행함수(IIFE) 적용
 (function() {
     try {
         const els = {
@@ -256,18 +260,19 @@
         let memos = [];
         let currentSize = 'M';
 
-        // 새로운 안전 저장소 키 (캐시 꼬임 방지)
+        // 새로운 안전 저장소 키 부여 (캐시 충돌 100% 방지)
         try {
-            const stored = localStorage.getItem('custom_memos_v8');
+            const stored = localStorage.getItem('custom_memos_v9_cqi');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_v8') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v9_cqi') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
             els.memoList.innerHTML = '';
+            
             if (memos.length === 0) {
                 els.memoList.innerHTML = '<div class="empty-state">No memos yet</div>';
                 return;
@@ -283,7 +288,7 @@
                 const item = document.createElement('div');
                 item.className = 'memo-item';
                 
-                // 2. 색상 띠 렌더링. CSS에서 패딩을 고정시켰으므로 체크박스 밀림 절대 없음
+                // 패딩이 고정되어 있으므로 색상 띠가 없어도 글씨나 체크박스 밀림이 없습니다.
                 if (memo.color !== 'none') {
                     const colorBar = document.createElement('div');
                     colorBar.className = 'memo-color-bar';
@@ -333,17 +338,17 @@
 
         function toggleStar(id) {
             const target = memos.find(m => m.id === id);
-            if(target) { target.isStarred = !target.isStarred; saveAndRender(); }
+            if (target) { target.isStarred = !target.isStarred; saveAndRender(); }
         }
 
         function toggleCheck(id) {
             const target = memos.find(m => m.id === id);
-            if(target) { target.isChecked = !target.isChecked; saveAndRender(); }
+            if (target) { target.isChecked = !target.isChecked; saveAndRender(); }
         }
 
         function updateMemoText(id, newText) {
             const target = memos.find(m => m.id === id);
-            if(target && newText.trim() !== '') { target.text = newText; saveAndRender(); }
+            if (target && newText.trim() !== '') { target.text = newText; saveAndRender(); }
         }
 
         function deleteMemo(id) {
@@ -352,65 +357,65 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_v8', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v9_cqi', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
-        // 반응형 S/M/L 스케일 변경 함수
+        // 폰트 비율(Scale) 조정 
         function applySize(size) {
             let scale = 1;
             if (size === 'S' || size === '14') scale = 0.85;
             if (size === 'L' || size === '18') scale = 1.15;
             
-            els.root.style.setProperty('--font-scale', scale);
+            els.root.style.setProperty('--scale', scale);
             els.sizeBtns.forEach(btn => {
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_v8', size); } catch(e) {}
-        }
-
-        function applySettings() {
-            if(els.bgColor) els.root.style.setProperty('--bg-color', els.bgColor.value);
-            if(els.shadowCheckbox) els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 0.4em 1.5em rgba(0,0,0,0.08)' : 'none');
-            if(els.memoBg) els.root.style.setProperty('--memo-bg', els.memoBg.value);
-            if(els.primaryColor) els.root.style.setProperty('--primary-color', els.primaryColor.value);
-            if(els.textColor) els.root.style.setProperty('--text-color', els.textColor.value);
-            updateGeneratedLink();
+            try { localStorage.setItem('custom_memo_size_v9_cqi', size); } catch(e) {}
         }
 
         function updateGeneratedLink() {
-            if(!els.generatedLink) return;
+            if (!els.generatedLink) return;
             try {
                 const url = new URL(window.location.href.split('?')[0]);
                 url.searchParams.set('embed', 'true');
-                if(els.titleInput) url.searchParams.set('title', encodeURIComponent(els.titleInput.value));
-                if(els.shadowCheckbox) url.searchParams.set('sh', els.shadowCheckbox.checked ? '1' : '0');
-                if(els.bgColor) url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
-                if(els.memoBg) url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
-                if(els.primaryColor) url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
-                if(els.textColor) url.searchParams.set('tc', els.textColor.value.replace('#', ''));
+                if (els.titleInput) url.searchParams.set('title', encodeURIComponent(els.titleInput.value));
+                if (els.shadowCheckbox) url.searchParams.set('sh', els.shadowCheckbox.checked ? '1' : '0');
+                if (els.bgColor) url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
+                if (els.memoBg) url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
+                if (els.primaryColor) url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
+                if (els.textColor) url.searchParams.set('tc', els.textColor.value.replace('#', ''));
                 els.generatedLink.value = url.href;
             } catch(e) {}
+        }
+
+        function applySettings() {
+            if (els.bgColor) els.root.style.setProperty('--bg-color', els.bgColor.value);
+            if (els.shadowCheckbox) els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 0.3em 1em rgba(0,0,0,0.08)' : 'none');
+            if (els.memoBg) els.root.style.setProperty('--memo-bg', els.memoBg.value);
+            if (els.primaryColor) els.root.style.setProperty('--primary-color', els.primaryColor.value);
+            if (els.textColor) els.root.style.setProperty('--text-color', els.textColor.value);
+            updateGeneratedLink();
         }
 
         function loadConfigFromURL() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 if (params.get('embed') === 'true') {
-                    if(els.settingsBtn) els.settingsBtn.style.display = 'none';
+                    if (els.settingsBtn) els.settingsBtn.style.display = 'none';
                     document.body.classList.add('embed-mode');
                     
-                    if(params.get('title') && els.titleInput && els.header) {
+                    if (params.get('title') && els.titleInput && els.header) {
                         const decodedTitle = decodeURIComponent(params.get('title'));
                         els.header.innerText = decodedTitle || 'MEMO';
                         els.titleInput.value = decodedTitle;
                     }
-                    if(params.has('sh') && els.shadowCheckbox) els.shadowCheckbox.checked = params.get('sh') === '1';
-                    if(params.get('bg') && els.bgColor) els.bgColor.value = '#' + params.get('bg');
-                    if(params.get('mbg') && els.memoBg) els.memoBg.value = '#' + params.get('mbg');
-                    if(params.get('pc') && els.primaryColor) els.primaryColor.value = '#' + params.get('pc');
-                    if(params.get('tc') && els.textColor) els.textColor.value = '#' + params.get('tc');
+                    if (params.has('sh') && els.shadowCheckbox) els.shadowCheckbox.checked = params.get('sh') === '1';
+                    if (params.get('bg') && els.bgColor) els.bgColor.value = '#' + params.get('bg');
+                    if (params.get('mbg') && els.memoBg) els.memoBg.value = '#' + params.get('mbg');
+                    if (params.get('pc') && els.primaryColor) els.primaryColor.value = '#' + params.get('pc');
+                    if (params.get('tc') && els.textColor) els.textColor.value = '#' + params.get('tc');
                     
                     applySettings();
                     return true;
@@ -421,7 +426,7 @@
             return false;
         }
 
-        // --- 이벤트 리스너 바인딩 ---
+        // --- 이벤트 리스너 안전 바인딩 ---
         els.colorCircles.forEach(circle => {
             circle.addEventListener('click', (e) => {
                 els.colorCircles.forEach(c => c.classList.remove('active'));
@@ -430,32 +435,40 @@
             });
         });
 
-        if(els.addBtn) els.addBtn.addEventListener('click', addMemo);
-        if(els.input) els.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addMemo(); });
-        els.sizeBtns.forEach(btn => { btn.addEventListener('click', (e) => applySize(e.target.dataset.size)); });
-
-        if(els.settingsBtn) els.settingsBtn.addEventListener('click', () => { if(els.settingsModal) els.settingsModal.style.display = 'block'; });
-        if(els.closeSettings) els.closeSettings.addEventListener('click', () => { if(els.settingsModal) els.settingsModal.style.display = 'none'; });
-
-        if(els.titleInput) els.titleInput.addEventListener('input', (e) => {
-            if(els.header) els.header.innerText = e.target.value || 'MEMO';
-            updateGeneratedLink();
+        if (els.addBtn) els.addBtn.addEventListener('click', addMemo);
+        if (els.input) els.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addMemo(); });
+        
+        els.sizeBtns.forEach(btn => { 
+            btn.addEventListener('click', (e) => applySize(e.target.dataset.size)); 
         });
+
+        if (els.settingsBtn) els.settingsBtn.addEventListener('click', () => { if(els.settingsModal) els.settingsModal.style.display = 'block'; });
+        if (els.closeSettings) els.closeSettings.addEventListener('click', () => { if(els.settingsModal) els.settingsModal.style.display = 'none'; });
+
+        if (els.titleInput) {
+            els.titleInput.addEventListener('input', (e) => {
+                if (els.header) els.header.innerText = e.target.value || 'MEMO';
+                updateGeneratedLink();
+            });
+        }
 
         [els.bgColor, els.memoBg, els.primaryColor, els.textColor].forEach(el => { 
-            if(el) el.addEventListener('input', applySettings); 
+            if (el) el.addEventListener('input', applySettings); 
         });
-        if(els.shadowCheckbox) els.shadowCheckbox.addEventListener('change', applySettings);
+        
+        if (els.shadowCheckbox) els.shadowCheckbox.addEventListener('change', applySettings);
 
-        if(els.copyBtn) els.copyBtn.addEventListener('click', () => {
-            if(!els.generatedLink) return;
-            els.generatedLink.select();
-            document.execCommand('copy');
-            els.copyBtn.innerText = '완료';
-            setTimeout(() => els.copyBtn.innerText = '복사', 1500);
-        });
+        if (els.copyBtn) {
+            els.copyBtn.addEventListener('click', () => {
+                if (!els.generatedLink) return;
+                els.generatedLink.select();
+                document.execCommand('copy');
+                els.copyBtn.innerText = '완료';
+                setTimeout(() => els.copyBtn.innerText = '복사', 1500);
+            });
+        }
 
-        // 초기 실행
+        // 초기 실행 (타이밍 이슈 없음)
         if (!loadConfigFromURL()) {
             updateGeneratedLink();
         }
