@@ -16,7 +16,7 @@
     body {
         margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background-color: transparent; /* 배경색은 컨테이너에 적용 */
+        background-color: transparent;
         overflow: hidden;
     }
 
@@ -34,7 +34,7 @@
     .bottom-section { display: flex; align-items: flex-end; justify-content: flex-start; flex: 1; padding-bottom: 2vw; }
     #disp-dday { font-size: var(--dday-size); font-weight: 800; letter-spacing: -0.04em; line-height: 0.9; }
 
-    /* 설정 UI (제공된 이미지 스타일 반영) */
+    /* 설정 UI */
     #settings-btn { position: fixed; top: 20px; right: 20px; font-size: 24px; background: transparent; border: none; color: #888; cursor: pointer; z-index: 100; transition: color 0.3s; }
     #settings-btn:hover { color: #333; }
     
@@ -44,12 +44,24 @@
         box-shadow: -4px 0 15px rgba(0,0,0,0.1); z-index: 101; overflow-y: auto;
     }
 
-    .setting-group { margin-bottom: 20px; }
+    /* 그룹화용 배경 박스 */
+    .setting-category {
+        background-color: #f7f7f7;
+        border: 1px solid #ececec;
+        border-radius: 12px;
+        padding: 18px 15px;
+        margin-bottom: 20px;
+    }
+    .setting-category .setting-group { margin-bottom: 15px; }
+    .setting-category .setting-group:last-child { margin-bottom: 0; }
+
     .setting-label { font-size: 13px; color: #333; margin-bottom: 8px; display: block; font-weight: 500; }
     
     /* 바 형태의 입력창 스타일 */
     .input-bar {
-        background-color: #f2f2f2; border-radius: 8px; padding: 12px 15px;
+        background-color: #ffffff; /* 그룹 배경과 대비되도록 흰색으로 변경 */
+        border: 1px solid #e0e0e0;
+        border-radius: 8px; padding: 12px 15px;
         display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
     .input-bar input[type="text"], .input-bar input[type="date"] {
@@ -63,7 +75,7 @@
     }
     .val-display { font-size: 13px; color: #666; font-weight: 600; min-width: 45px; text-align: right; }
 
-    .close-btn { background: #111; color: #fff; border: none; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 25px; width: 100%; font-weight: bold; font-size: 14px; }
+    .close-btn { background: #111; color: #fff; border: none; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 25px; width: 100%; font-weight: bold; font-size: 14px; text-transform: uppercase; }
     
     /* 생성된 링크 영역 */
     .link-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 25px; }
@@ -79,64 +91,72 @@
     <button id="settings-btn">⚙️</button>
     
     <div id="settings-modal">
-        <button class="close-btn" id="close-settings">닫기</button>
+        <button class="close-btn" id="close-settings">Close</button>
         
-        <div class="setting-group">
-            <label class="setting-label">Text (텍스트)</label>
-            <div class="input-bar"><input type="text" id="inp-text" value="Text"></div>
+        <!-- Text 관련 설정 그룹 -->
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Text</label>
+                <div class="input-bar"><input type="text" id="inp-text" value="Text"></div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">Text Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-txt" min="2" max="20" step="0.5" value="8">
+                    <span class="val-display" id="val-sz-txt">8vw</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Text Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-txt-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-txt-color" value="#000000">
+                </div>
+            </div>
         </div>
         
-        <div class="setting-group">
-            <label class="setting-label">Day (날짜)</label>
-            <!-- 텍스트 형태로 자유롭게 입력 가능하도록 구성 -->
-            <div class="input-bar"><input type="text" id="inp-day" value="2000-01-01"></div>
-        </div>
+        <!-- Day 관련 설정 그룹 -->
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Day</label>
+                <div class="input-bar"><input type="text" id="inp-day" value="2000-01-01"></div>
+            </div>
 
-        <div class="setting-group">
-            <label class="setting-label">Text Size (텍스트 크기)</label>
-            <div class="input-bar">
-                <input type="range" id="inp-sz-txt" min="2" max="20" step="0.5" value="8">
-                <span class="val-display" id="val-sz-txt">8vw</span>
+            <div class="setting-group">
+                <label class="setting-label">Day Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-day" min="2" max="20" step="0.5" value="7">
+                    <span class="val-display" id="val-sz-day">7vw</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">D-day Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-dday" min="5" max="50" step="1" value="24">
+                    <span class="val-display" id="val-sz-dday">24vw</span>
+                </div>
             </div>
         </div>
 
-        <div class="setting-group">
-            <label class="setting-label">Day Size (날짜 크기)</label>
-            <div class="input-bar">
-                <input type="range" id="inp-sz-day" min="2" max="20" step="0.5" value="7">
-                <span class="val-display" id="val-sz-day">7vw</span>
+        <!-- Background 관련 설정 그룹 -->
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Background Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-bg-hex" value="#FFFFFF" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-bg-color" value="#ffffff">
+                </div>
             </div>
-        </div>
 
-        <div class="setting-group">
-            <label class="setting-label">D-day Size (디데이 크기)</label>
-            <div class="input-bar">
-                <input type="range" id="inp-sz-dday" min="5" max="50" step="1" value="24">
-                <span class="val-display" id="val-sz-dday">24vw</span>
-            </div>
-        </div>
-
-        <div class="setting-group">
-            <label class="setting-label">Background color (배경색)</label>
-            <div class="input-bar">
-                <input type="text" id="inp-bg-hex" value="#FFFFFF" maxlength="7" style="text-transform: uppercase;">
-                <input type="color" id="inp-bg-color" value="#ffffff">
-            </div>
-        </div>
-
-        <div class="setting-group">
-            <label class="setting-label">Background opacity (투명도)</label>
-            <div class="input-bar">
-                <input type="range" id="inp-bg-op" min="0" max="100" step="1" value="100">
-                <span class="val-display" id="val-bg-op">100%</span>
-            </div>
-        </div>
-
-        <div class="setting-group">
-            <label class="setting-label">Text color (글자색)</label>
-            <div class="input-bar">
-                <input type="text" id="inp-txt-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
-                <input type="color" id="inp-txt-color" value="#000000">
+            <div class="setting-group">
+                <label class="setting-label">Background Opacity</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-bg-op" min="0" max="100" step="1" value="100">
+                    <span class="val-display" id="val-bg-op">100%</span>
+                </div>
             </div>
         </div>
 
@@ -202,104 +222,11 @@
         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays >= 0) {
-            els.dispDday.innerText = "D+" + diffDays; // 과거~오늘은 D+
+            els.dispDday.innerText = "D+" + diffDays;
         } else {
-            els.dispDday.innerText = "D" + diffDays;  // 미래는 D- (diffDays에 마이너스 포함)
+            els.dispDday.innerText = "D" + diffDays;
         }
     }
 
     function loadConfigFromURL() {
         try {
-            const params = new URLSearchParams(window.location.search);
-            if (Array.from(params.keys()).length === 0) return false;
-
-            els.inpText.value = params.get('txt') || 'Text';
-            els.inpDay.value = params.get('day') || '2000-01-01';
-            els.szTxt.value = params.get('st') || '8';
-            els.szDay.value = params.get('sd') || '7';
-            els.szDday.value = params.get('sdd') || '24';
-            
-            const bHex = '#' + (params.get('bc') || 'FFFFFF');
-            els.bgHex.value = bHex; els.bgColor.value = bHex.toLowerCase();
-            els.bgOp.value = params.get('bo') || '100';
-            
-            const tHex = '#' + (params.get('tc') || '000000');
-            els.txtHex.value = tHex; els.txtColor.value = tHex.toLowerCase();
-        } catch(e) {}
-    }
-
-    function updateGeneratedLink() {
-        try {
-            const url = new URL(window.location.href);
-            url.searchParams.set('txt', els.inpText.value);
-            url.searchParams.set('day', els.inpDay.value);
-            url.searchParams.set('st', els.szTxt.value);
-            url.searchParams.set('sd', els.szDay.value);
-            url.searchParams.set('sdd', els.szDday.value);
-            url.searchParams.set('bc', els.bgHex.value.replace('#', ''));
-            url.searchParams.set('bo', els.bgOp.value);
-            url.searchParams.set('tc', els.txtHex.value.replace('#', ''));
-            els.generatedLink.value = url.href;
-        } catch(e) {}
-    }
-
-    function applyConfig() {
-        // 화면 반영
-        els.dispText.innerText = els.inpText.value;
-        updateDdayCalc();
-
-        // 수치 텍스트 업데이트
-        els.valTxt.innerText = els.szTxt.value + 'vw';
-        els.valDay.innerText = els.szDay.value + 'vw';
-        els.valDday.innerText = els.szDday.value + 'vw';
-        els.valBgOp.innerText = els.bgOp.value + '%';
-
-        // CSS 변수 적용
-        document.documentElement.style.setProperty('--txt-size', els.szTxt.value + 'vw');
-        document.documentElement.style.setProperty('--day-size', els.szDay.value + 'vw');
-        document.documentElement.style.setProperty('--dday-size', els.szDday.value + 'vw');
-        document.documentElement.style.setProperty('--text-color', els.txtHex.value);
-        document.documentElement.style.setProperty('--bg-color', hexToRgba(els.bgHex.value, els.bgOp.value));
-
-        updateGeneratedLink();
-    }
-
-    // 이벤트 리스너 바인딩
-    ['change', 'input'].forEach(evt => {
-        // 일반 텍스트 및 슬라이더
-        [els.inpText, els.inpDay, els.szTxt, els.szDay, els.szDday, els.bgOp].forEach(el => {
-            el.addEventListener(evt, applyConfig);
-        });
-
-        // 색상 동기화 (텍스트박스 <-> 컬러피커)
-        els.bgColor.addEventListener(evt, (e) => { els.bgHex.value = e.target.value.toUpperCase(); applyConfig(); });
-        els.bgHex.addEventListener(evt, (e) => { els.bgColor.value = e.target.value; applyConfig(); });
-        els.txtColor.addEventListener(evt, (e) => { els.txtHex.value = e.target.value.toUpperCase(); applyConfig(); });
-        els.txtHex.addEventListener(evt, (e) => { els.txtColor.value = e.target.value; applyConfig(); });
-    });
-
-    els.copyBtn.addEventListener('click', () => {
-        els.generatedLink.select();
-        document.execCommand('copy');
-        const originalText = els.copyBtn.innerText;
-        els.copyBtn.innerText = '✓';
-        setTimeout(() => els.copyBtn.innerText = originalText, 1500);
-    });
-
-    // 노션 임베드 환경 판별
-    if (window !== window.parent) {
-        els.settingsBtn.style.display = 'none';
-    } else {
-        els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
-        els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
-    }
-
-    // 날짜가 바뀔 수 있으므로 주기적으로 D-day 업데이트 (자정 갱신 대응)
-    setInterval(updateDdayCalc, 60000); 
-
-    // 초기화 실행
-    loadConfigFromURL();
-    applyConfig();
-</script>
-</body>
-</html>
