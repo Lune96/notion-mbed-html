@@ -6,14 +6,13 @@
 <title>Custom Memo Widget</title>
 <style>
     :root {
-        /* S, M, L 에 따라 JS에서 반응형(vw) 글씨 크기로 변경됨 */
-        --base-font-size: clamp(13px, 4.5vw, 16px); 
+        --font-scale: 1; /* S, M, L 버튼을 통해 변경됨 */
         --primary-color: #6366f1;
         --bg-color: #ffffff;
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
-        --widget-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        --widget-shadow: 0 1cqi 4cqi rgba(0,0,0,0.08);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,100 +20,117 @@
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         display: flex; justify-content: center; align-items: center;
-        height: 100vh; background-color: transparent; font-size: var(--base-font-size); overflow: hidden;
+        height: 100vh; background-color: transparent; overflow: hidden;
     }
 
+    /* 반응형을 위한 컨테이너 래퍼 */
+    .widget-wrapper {
+        container-type: inline-size;
+        width: 100%; max-width: 450px; 
+        height: 100%; max-height: 800px;
+        display: flex; flex-direction: column; justify-content: center;
+    }
+
+    /* 노션 임베드 모드: 둥근 모서리와 그림자가 잘리지 않도록 여백 부여 */
+    body.embed-mode .widget-wrapper {
+        max-width: 100%; max-height: 100vh;
+        padding: 4cqi; 
+    }
+
+    /* 내부 컨텐츠 (cqi 단위를 사용하여 부모 너비에 비례해 완벽하게 스케일링 됨) */
     .widget-container {
-        width: 100%; max-width: 450px; height: 100vh;
-        background-color: var(--bg-color); border-radius: 24px;
-        padding: 30px; display: flex; flex-direction: column;
-        box-shadow: var(--widget-shadow); position: relative;
+        flex: 1;
+        background-color: var(--bg-color); border-radius: 6cqi;
+        padding: 7.5cqi; display: flex; flex-direction: column;
+        box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
 
-    /* 노션 임베드 모드 시 가로 100% 채움 + 둥근 모서리 유지 */
-    body.embed-mode { padding: 0; }
-    body.embed-mode .widget-container {
-        max-width: none; width: 100%; height: 100vh;
-        border-radius: 24px; /* 임베드 시 둥근 모서리 보존 */
-        padding: 24px; box-shadow: none;
+    .header { 
+        font-size: calc(7cqi * var(--font-scale)); font-weight: 900; 
+        color: var(--text-color); margin-bottom: 5cqi; letter-spacing: -0.02em; word-break: break-all; 
     }
 
-    .header { font-size: 1.75em; font-weight: 800; color: var(--text-color); margin-bottom: 20px; letter-spacing: -0.02em; word-break: break-all; }
-
-    .input-section { margin-bottom: 20px; }
-    .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 12px; }
+    .input-section { margin-bottom: 4cqi; }
+    .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 3cqi; }
     
     .input-wrapper input {
-        width: 100%; padding: 16px 50px 16px 20px; border: none; border-radius: 100px;
-        background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
+        width: 100%; padding: 4cqi 13cqi 4cqi 5cqi; border: none; border-radius: 25cqi;
+        background-color: var(--memo-bg); font-size: calc(3.8cqi * var(--font-scale)); outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
 
-    /* 모든 원형 버튼 공통: 완벽한 정중앙 정렬 */
+    /* 아이콘 완벽 정중앙 정렬 유틸리티 */
     .center-icon {
-        display: flex; justify-content: center; align-items: center; line-height: 0;
+        display: flex; justify-content: center; align-items: center; 
+        line-height: 0 !important; padding: 0 !important; margin: 0;
     }
 
     .add-btn {
-        position: absolute; right: 8px; width: 36px; height: 36px; border-radius: 50%;
-        background-color: var(--primary-color); color: white; border: none; font-size: 1.4em; cursor: pointer; transition: transform 0.1s;
+        position: absolute; right: 2cqi; width: 9cqi; height: 9cqi; border-radius: 50%;
+        background-color: var(--primary-color); color: white; border: none; 
+        font-size: 5.5cqi; cursor: pointer; transition: transform 0.1s;
     }
     .add-btn:active { transform: scale(0.95); }
 
-    .color-picker { display: flex; gap: 8px; padding: 0 10px; }
+    .color-picker { display: flex; gap: 2.5cqi; padding: 0 2.5cqi; }
     .color-circle {
-        width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
-        border: 2px solid transparent; transition: transform 0.2s;
+        width: 4.5cqi; height: 4.5cqi; border-radius: 50%; cursor: pointer;
+        border: max(1px, 0.4cqi) solid transparent; transition: transform 0.2s;
     }
-    .color-circle.active { border: 3px solid #1f2937; transform: scale(1.15); }
+    .color-circle.active { border: max(2px, 0.7cqi) solid #1f2937; transform: scale(1.15); }
     
-    /* 투명(색상 없음) 버튼 - 회색 X 표시 적용 */
+    /* 1. 색상 없음 아이콘: CSS 사선 처리 */
     .color-circle[data-color="none"] {
-        background-color: #ffffff; border: 1px solid #d1d5db; color: #9ca3af; font-size: 16px; font-weight: 300;
+        background: linear-gradient(to top right, transparent 46%, #9ca3af 46%, #9ca3af 54%, transparent 54%), #ffffff;
+        border: max(1px, 0.4cqi) solid #d1d5db;
     }
-    .color-circle[data-color="none"]::after { content: "×"; }
-    .color-circle[data-color="none"].active { border: 3px solid #1f2937; }
+    .color-circle[data-color="none"].active { border: max(2px, 0.7cqi) solid #1f2937; }
 
-    .memo-list { flex: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
-    .memo-list::-webkit-scrollbar { width: 6px; }
-    .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 3px; }
-
-    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
+    .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2.5cqi; padding-bottom: 12cqi; padding-right: 1.5cqi; }
+    .memo-list::-webkit-scrollbar { width: 1.5cqi; }
+    .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 1cqi; }
+    .empty-state { margin: auto; color: #9ca3af; font-size: calc(3.5cqi * var(--font-scale)); font-weight: 500; }
 
     .memo-item {
         display: flex; align-items: center; 
-        /* 색상 유무와 상관없이 패딩을 고정하여 체크박스가 밀리지 않게 방지 */
-        padding: 12px 12px 12px 20px;
-        background-color: var(--memo-bg); border-radius: 16px; 
-        position: relative; gap: 10px; overflow: hidden;
+        padding: 3cqi 3cqi 3cqi 5cqi;
+        background-color: var(--memo-bg); border-radius: 4cqi; 
+        position: relative; gap: 2.5cqi; overflow: hidden;
     }
-
-    .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+    /* 색상 바가 없을 때 왼쪽 패딩 좁히기 */
+    .memo-item.no-color { padding-left: 3cqi; }
+    .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 1.5cqi; }
 
     .check-btn {
-        width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; background: transparent;
-        cursor: pointer; flex-shrink: 0; color: white; font-size: 12px;
+        width: 5cqi; height: 5cqi; border-radius: 50%; border: max(1px, 0.4cqi) solid #cbd5e1; background: transparent;
+        cursor: pointer; flex-shrink: 0; color: white; font-size: 3.5cqi;
     }
     .check-btn.checked { background-color: #cbd5e1; border-color: #cbd5e1; }
 
-    .memo-text { flex: 1; font-size: 0.95em; color: var(--text-color); line-height: 1.4; outline: none; word-break: break-word; }
+    .memo-text { 
+        flex: 1; font-size: calc(3.6cqi * var(--font-scale)); color: var(--text-color); 
+        line-height: 1.4; outline: none; word-break: break-word; 
+    }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; }
 
-    .star-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; color: #cbd5e1; width: 24px; height: 24px; }
+    .star-btn { background: transparent; border: none; font-size: 5cqi; cursor: pointer; color: #cbd5e1; width: 6cqi; height: 6cqi; }
     .star-btn.starred { color: #fbbf24; }
 
-    .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.5em; width: 24px; height: 24px; }
+    .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 5.5cqi; width: 6cqi; height: 6cqi; }
     .delete-btn:hover { color: #ef4444; }
 
-    .size-controls { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 6px; background-color: var(--bg-color); border-radius: 15px; padding: 4px; }
-    body.embed-mode .size-controls { box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .size-controls { 
+        position: absolute; bottom: 5cqi; right: 5cqi; display: flex; gap: 1.5cqi; 
+        background-color: var(--bg-color); border-radius: 5cqi; padding: 1cqi; 
+    }
+    body.embed-mode .size-controls { box-shadow: 0 0.5cqi 2cqi rgba(0,0,0,0.08); }
     .size-btn {
-        width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background-color: white;
-        color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer;
+        width: 7cqi; height: 7cqi; border-radius: 50%; border: max(1px, 0.4cqi) solid var(--border-color); background-color: white;
+        color: #6b7280; font-size: 2.5cqi; font-weight: bold; cursor: pointer;
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 설정창 UI */
+    /* 모달 설정창 UI (데스크탑 고정 픽셀) */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 22px; background: none; border: none; cursor: pointer; z-index: 100; }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -178,30 +194,32 @@
     </div>
 </div>
 
-<div class="widget-container">
-    <div class="header" id="widget-header">MEMO</div>
-    
-    <div class="input-section">
-        <div class="input-wrapper">
-            <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
-            <button class="add-btn center-icon" id="add-btn">+</button>
+<div class="widget-wrapper">
+    <div class="widget-container">
+        <div class="header" id="widget-header">MEMO</div>
+        
+        <div class="input-section">
+            <div class="input-wrapper">
+                <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
+                <button class="add-btn center-icon" id="add-btn">+</button>
+            </div>
+            <div class="color-picker" id="color-picker">
+                <div class="color-circle active" data-color="none"></div>
+                <div class="color-circle" style="background-color: #f472b6;" data-color="#f472b6"></div>
+                <div class="color-circle" style="background-color: #60a5fa;" data-color="#60a5fa"></div>
+                <div class="color-circle" style="background-color: #4ade80;" data-color="#4ade80"></div>
+                <div class="color-circle" style="background-color: #fef08a;" data-color="#fef08a"></div>
+                <div class="color-circle" style="background-color: #fb923c;" data-color="#fb923c"></div>
+            </div>
         </div>
-        <div class="color-picker" id="color-picker">
-            <div class="color-circle center-icon active" data-color="none"></div>
-            <div class="color-circle" style="background-color: #f472b6;" data-color="#f472b6"></div>
-            <div class="color-circle" style="background-color: #60a5fa;" data-color="#60a5fa"></div>
-            <div class="color-circle" style="background-color: #4ade80;" data-color="#4ade80"></div>
-            <div class="color-circle" style="background-color: #fef08a;" data-color="#fef08a"></div>
-            <div class="color-circle" style="background-color: #fb923c;" data-color="#fb923c"></div>
+
+        <div class="memo-list" id="memo-list"></div>
+
+        <div class="size-controls" id="size-controls">
+            <button class="size-btn center-icon" data-size="S">S</button>
+            <button class="size-btn center-icon active" data-size="M">M</button>
+            <button class="size-btn center-icon" data-size="L">L</button>
         </div>
-    </div>
-
-    <div class="memo-list" id="memo-list"></div>
-
-    <div class="size-controls" id="size-controls">
-        <button class="size-btn center-icon" data-size="14">S</button>
-        <button class="size-btn center-icon active" data-size="16">M</button>
-        <button class="size-btn center-icon" data-size="18">L</button>
     </div>
 </div>
 
@@ -220,7 +238,7 @@
 
     let selectedColor = 'none'; 
     let memos = [];
-    let currentSize = '16';
+    let currentSize = 'M';
 
     try {
         const stored = localStorage.getItem('custom_memos_vfinal');
@@ -228,7 +246,7 @@
         if (!Array.isArray(memos)) memos = [];
     } catch (e) { memos = []; }
 
-    try { currentSize = localStorage.getItem('custom_memo_size_final') || '16'; } catch (e) {}
+    try { currentSize = localStorage.getItem('custom_memo_size_final') || 'M'; } catch (e) {}
 
     function init() {
         if (!loadConfigFromURL()) {
@@ -255,12 +273,14 @@
             const item = document.createElement('div');
             item.className = 'memo-item';
             
-            // 색상 없음이어도 패딩 수정 없이 색상 띠 요소만 안 넣음(체크박스 정렬 유지)
+            // 색상 없음 처리 (여백 좁히기 적용)
             if (memo.color !== 'none') {
                 const colorBar = document.createElement('div');
                 colorBar.className = 'memo-color-bar';
                 colorBar.style.backgroundColor = memo.color;
                 item.appendChild(colorBar);
+            } else {
+                item.classList.add('no-color');
             }
 
             const checkBtn = document.createElement('button');
@@ -327,13 +347,12 @@
         renderMemos();
     }
 
-    // 반응형 clamp와 vw를 사용하여 S, M, L 비율에 맞게 폰트 크기 세팅
     function applySize(size) {
-        let clampVal = 'clamp(13px, 4.5vw, 16px)'; // M size
-        if (size === '14' || size === 'S') clampVal = 'clamp(11px, 3.5vw, 14px)';
-        if (size === '18' || size === 'L') clampVal = 'clamp(15px, 5.5vw, 18px)';
-
-        els.root.style.setProperty('--base-font-size', clampVal);
+        let scale = 1;
+        if (size === 'S' || size === '14') scale = 0.85;
+        if (size === 'L' || size === '18') scale = 1.15;
+        
+        els.root.style.setProperty('--font-scale', scale);
         els.sizeBtns.forEach(btn => {
             if (btn.dataset.size === size) btn.classList.add('active');
             else btn.classList.remove('active');
@@ -366,7 +385,7 @@
         els.root.style.setProperty('--memo-bg', els.memoBg.value);
         els.root.style.setProperty('--primary-color', els.primaryColor.value);
         els.root.style.setProperty('--text-color', els.textColor.value);
-        els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 4px 15px rgba(0,0,0,0.05)' : 'none');
+        els.root.style.setProperty('--widget-shadow', els.shadowCheckbox.checked ? '0 1cqi 4cqi rgba(0,0,0,0.08)' : 'none');
         updateGeneratedLink();
     }
 
@@ -402,7 +421,7 @@
                 if(params.has('sh')) {
                     const hasShadow = params.get('sh') === '1';
                     els.shadowCheckbox.checked = hasShadow;
-                    els.root.style.setProperty('--widget-shadow', hasShadow ? '0 4px 15px rgba(0,0,0,0.05)' : 'none');
+                    els.root.style.setProperty('--widget-shadow', hasShadow ? '0 1cqi 4cqi rgba(0,0,0,0.08)' : 'none');
                 }
                 if(params.get('bg')) els.root.style.setProperty('--bg-color', '#' + params.get('bg'));
                 if(params.get('mbg')) els.root.style.setProperty('--memo-bg', '#' + params.get('mbg'));
