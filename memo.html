@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Custom Memo Widget</title>
+<title>Memo Widget</title>
 <style>
     :root {
         --base-font-size: 16px;
-        --primary-color: #6366f1; /* 버튼 및 활성화 색상 */
-        --bg-color: #ffffff; /* 위젯 배경색 */
-        --memo-bg: #f3f4ff; /* 메모/입력창 배경색 */
-        --text-color: #1f2937; /* 텍스트 색상 */
+        --primary-color: #6366f1; /* 메인 포인트 (버튼 등) */
+        --bg-color: #ffffff;      /* 위젯 전체 배경 */
+        --memo-bg: #f3f4f6;       /* 메모장 및 입력창 배경 (묶음) */
+        --text-color: #1f2937;    /* 텍스트 색상 */
         --border-color: #e5e7eb;
     }
 
@@ -19,21 +19,22 @@
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         display: flex; justify-content: center; align-items: center;
-        height: 100vh; background-color: transparent; font-size: var(--base-font-size);
-        overflow: hidden;
+        height: 100vh; background-color: transparent; font-size: var(--base-font-size); overflow: hidden;
     }
 
     .widget-container {
         width: 100%; max-width: 450px; height: 100vh;
         background-color: var(--bg-color); border-radius: 24px;
         padding: 30px; display: flex; flex-direction: column;
-        position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative;
     }
 
-    .header { font-size: 1.75em; font-weight: 900; color: var(--text-color); margin-bottom: 20px; letter-spacing: -0.02em; }
+    .header { font-size: 1.75em; font-weight: 800; color: var(--text-color); margin-bottom: 20px; letter-spacing: -0.02em; }
 
     .input-section { margin-bottom: 20px; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 12px; }
+    
+    /* 5. 묶음 색상 적용: 입력창과 메모 배경을 --memo-bg로 통일 */
     .input-wrapper input {
         width: 100%; padding: 16px 50px 16px 20px; border: none; border-radius: 100px;
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
@@ -43,46 +44,338 @@
     .add-btn {
         position: absolute; right: 8px; width: 36px; height: 36px; border-radius: 50%;
         background-color: var(--primary-color); color: white; border: none; font-size: 1.2em;
-        display: flex; justify-content: center; align-items: center; cursor: pointer;
+        display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.1s;
     }
+    .add-btn:active { transform: scale(0.95); }
 
     .color-picker { display: flex; gap: 8px; padding: 0 10px; }
     .color-circle {
         width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
-        border: 2px solid transparent; transition: all 0.2s;
+        border: 2px solid transparent; transition: transform 0.2s;
     }
-    .color-circle.active { border: 3px solid #374151; transform: scale(1.15); }
+    /* 1. 누른 색상에 검정 동그라미(테두리) 생성 */
+    .color-circle.active { border: 3px solid #1f2937; transform: scale(1.15); }
     .color-circle[data-color="#ffffff"] { border: 1px solid #d1d5db; }
-    .color-circle[data-color="#ffffff"].active { border: 3px solid #374151; }
+    .color-circle[data-color="#ffffff"].active { border: 3px solid #1f2937; }
 
-    .memo-list { flex: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 50px; }
+    .memo-list { flex: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
     .memo-list::-webkit-scrollbar { width: 6px; }
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 3px; }
 
-    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
+    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
 
     .memo-item {
-        display: flex; align-items: center; padding: 12px 16px 12px 24px;
+        display: flex; align-items: center; padding: 12px 12px 12px 20px;
         background-color: var(--memo-bg); border-radius: 12px;
-        position: relative; gap: 10px; overflow: hidden; transition: opacity 0.2s;
+        position: relative; gap: 10px; overflow: hidden;
     }
 
+    /* 1. 메모 앞쪽 색상 표시 바 */
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
 
+    /* 4. 체크 버튼 */
     .check-btn {
-        width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1;
-        background: transparent; cursor: pointer; display: flex; justify-content: center; align-items: center;
-        color: white; font-size: 12px; flex-shrink: 0;
+        width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; background: transparent;
+        display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; color: white; font-size: 12px;
     }
     .check-btn.checked { background-color: #cbd5e1; border-color: #cbd5e1; }
 
-    .memo-text { flex: 1; font-size: 1em; color: var(--text-color); outline: none; word-break: break-word; }
+    /* 3. 텍스트 수정 가능 영역 */
+    .memo-text { flex: 1; font-size: 0.95em; color: var(--text-color); line-height: 1.4; outline: none; word-break: break-word; }
+    
+    /* 4. 체크 시 글씨 연해지고 줄 그어짐 */
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; }
 
-    .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; transition: color 0.2s; }
+    /* 2. 별 버튼 */
+    .star-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; color: #cbd5e1; }
     .star-btn.starred { color: #fbbf24; }
 
     .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.2em; padding: 4px; }
     .delete-btn:hover { color: #ef4444; }
 
-    .size-controls { position: absolute; bottom: 30px;
+    .size-controls { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 6px; background-color: var(--bg-color); border-radius: 15px; padding: 4px; }
+    .size-btn {
+        width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background-color: white;
+        color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;
+    }
+    .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+    /* 5. 설정창 UI */
+    #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 22px; background: none; border: none; cursor: pointer; z-index: 100; }
+    #settings-modal {
+        display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
+        background-color: #ffffff; padding: 25px; box-shadow: -4px 0 15px rgba(0,0,0,0.1); z-index: 101; overflow-y: auto; color: #333;
+    }
+    .setting-group { margin-bottom: 20px; }
+    .setting-label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+    .setting-input { width: 100%; height: 40px; border: none; cursor: pointer; padding: 0; }
+    .close-btn { background: #111; color: #fff; border: none; padding: 10px; cursor: pointer; border-radius: 6px; width: 100%; font-weight: bold; margin-bottom: 20px; }
+    .link-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+    .link-box { display: flex; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+    #generated-link { flex: 1; border: none; padding: 10px; font-size: 11px; outline: none; background: #f9f9f9; }
+    #copy-btn { background: #111; color: #fff; border: none; padding: 0 15px; cursor: pointer; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<button id="settings-btn" title="설정">⚙️</button>
+
+<div id="settings-modal">
+    <button class="close-btn" id="close-settings">닫기</button>
+    
+    <div class="setting-group">
+        <label class="setting-label">위젯 전체 배경색</label>
+        <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
+    </div>
+    <div class="setting-group">
+        <label class="setting-label">입력창 & 메모 배경색 (묶음)</label>
+        <input type="color" class="setting-input" id="inp-memo-bg" value="#f3f4f6">
+    </div>
+    <div class="setting-group">
+        <label class="setting-label">포인트 색상 (+버튼 등)</label>
+        <input type="color" class="setting-input" id="inp-primary-color" value="#6366f1">
+    </div>
+    <div class="setting-group">
+        <label class="setting-label">텍스트 색상</label>
+        <input type="color" class="setting-input" id="inp-text-color" value="#1f2937">
+    </div>
+
+    <div class="link-section">
+        <label class="setting-label">노션 임베드용 링크 (사용 시 설정창 자동 숨김)</label>
+        <div class="link-box">
+            <input type="text" id="generated-link" readonly>
+            <button id="copy-btn">복사</button>
+        </div>
+    </div>
+</div>
+
+<div class="widget-container">
+    <div class="header">MEMO</div>
+    
+    <div class="input-section">
+        <div class="input-wrapper">
+            <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
+            <button class="add-btn" id="add-btn">+</button>
+        </div>
+        <div class="color-picker" id="color-picker">
+            <div class="color-circle active" style="background-color: #ffffff;" data-color="#ffffff"></div>
+            <div class="color-circle" style="background-color: #f472b6;" data-color="#f472b6"></div>
+            <div class="color-circle" style="background-color: #60a5fa;" data-color="#60a5fa"></div>
+            <div class="color-circle" style="background-color: #4ade80;" data-color="#4ade80"></div>
+            <div class="color-circle" style="background-color: #fef08a;" data-color="#fef08a"></div>
+            <div class="color-circle" style="background-color: #fb923c;" data-color="#fb923c"></div>
+        </div>
+    </div>
+
+    <div class="memo-list" id="memo-list"></div>
+
+    <div class="size-controls" id="size-controls">
+        <button class="size-btn" data-size="14">S</button>
+        <button class="size-btn active" data-size="16">M</button>
+        <button class="size-btn" data-size="18">L</button>
+    </div>
+</div>
+
+<script>
+    const els = {
+        input: document.getElementById('memo-input'), addBtn: document.getElementById('add-btn'),
+        colorCircles: document.querySelectorAll('.color-circle'), memoList: document.getElementById('memo-list'),
+        sizeBtns: document.querySelectorAll('.size-btn'), root: document.documentElement,
+        settingsBtn: document.getElementById('settings-btn'), settingsModal: document.getElementById('settings-modal'),
+        closeSettings: document.getElementById('close-settings'), generatedLink: document.getElementById('generated-link'),
+        copyBtn: document.getElementById('copy-btn'),
+        bgColor: document.getElementById('inp-bg-color'), memoBg: document.getElementById('inp-memo-bg'),
+        primaryColor: document.getElementById('inp-primary-color'), textColor: document.getElementById('inp-text-color')
+    };
+
+    let selectedColor = '#ffffff';
+    let memos = [];
+    let currentSize = '16';
+
+    // 에러 방지를 위해 새로운 키(custom_memos_vfinal) 사용 및 예외 처리
+    try {
+        const stored = localStorage.getItem('custom_memos_vfinal');
+        if (stored) memos = JSON.parse(stored);
+        if (!Array.isArray(memos)) memos = [];
+    } catch (e) {
+        memos = [];
+    }
+
+    try { currentSize = localStorage.getItem('custom_memo_size_final') || '16'; } catch (e) {}
+
+    function init() {
+        if (!loadConfigFromURL()) {
+            updateGeneratedLink();
+        }
+        applySize(currentSize);
+        renderMemos();
+    }
+
+    function renderMemos() {
+        els.memoList.innerHTML = '';
+        if (memos.length === 0) {
+            els.memoList.innerHTML = '<div class="empty-state">No memos yet</div>';
+            return;
+        }
+
+        // 2. 별을 누른 메모 최상단 정렬 (이후 최신순 정렬)
+        const sortedMemos = [...memos].sort((a, b) => {
+            if (a.isStarred && !b.isStarred) return -1;
+            if (!a.isStarred && b.isStarred) return 1;
+            return b.id - a.id; 
+        });
+
+        sortedMemos.forEach((memo) => {
+            const item = document.createElement('div');
+            item.className = 'memo-item';
+            
+            // 1. 메모 앞쪽 색상
+            const colorBar = document.createElement('div');
+            colorBar.className = 'memo-color-bar';
+            colorBar.style.backgroundColor = memo.color === '#ffffff' ? '#e5e7eb' : memo.color;
+
+            // 4. 체크 버튼
+            const checkBtn = document.createElement('button');
+            checkBtn.className = `check-btn ${memo.isChecked ? 'checked' : ''}`;
+            checkBtn.innerHTML = memo.isChecked ? '✓' : '';
+            checkBtn.onclick = () => toggleCheck(memo.id);
+
+            // 3. 텍스트 수정 가능 (contenteditable)
+            const text = document.createElement('div');
+            text.className = `memo-text ${memo.isChecked ? 'checked-text' : ''}`;
+            text.contentEditable = true;
+            text.innerText = memo.text;
+            text.onblur = (e) => updateMemoText(memo.id, e.target.innerText);
+            text.onkeydown = (e) => { if(e.key === 'Enter') { e.preventDefault(); text.blur(); } };
+
+            // 2. 별 버튼
+            const starBtn = document.createElement('button');
+            starBtn.className = `star-btn ${memo.isStarred ? 'starred' : ''}`;
+            starBtn.innerHTML = memo.isStarred ? '★' : '☆';
+            starBtn.onclick = () => toggleStar(memo.id);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = () => deleteMemo(memo.id);
+
+            item.appendChild(colorBar);
+            item.appendChild(checkBtn);
+            item.appendChild(text);
+            item.appendChild(starBtn);
+            item.appendChild(deleteBtn);
+            
+            els.memoList.appendChild(item);
+        });
+    }
+
+    function addMemo() {
+        const text = els.input.value.trim();
+        if (!text) return;
+        memos.push({ id: Date.now(), text: text, color: selectedColor, isStarred: false, isChecked: false });
+        saveAndRender();
+        els.input.value = '';
+    }
+
+    function toggleStar(id) {
+        const target = memos.find(m => m.id === id);
+        if(target) { target.isStarred = !target.isStarred; saveAndRender(); }
+    }
+
+    function toggleCheck(id) {
+        const target = memos.find(m => m.id === id);
+        if(target) { target.isChecked = !target.isChecked; saveAndRender(); }
+    }
+
+    function updateMemoText(id, newText) {
+        const target = memos.find(m => m.id === id);
+        if(target && newText.trim() !== '') { target.text = newText; saveAndRender(); }
+    }
+
+    function deleteMemo(id) {
+        memos = memos.filter(m => m.id !== id);
+        saveAndRender();
+    }
+
+    function saveAndRender() {
+        try { localStorage.setItem('custom_memos_vfinal', JSON.stringify(memos)); } catch(e) {}
+        renderMemos();
+    }
+
+    function applySize(size) {
+        els.root.style.setProperty('--base-font-size', size + 'px');
+        els.sizeBtns.forEach(btn => {
+            if (btn.dataset.size === size) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        try { localStorage.setItem('custom_memo_size_final', size); } catch(e) {}
+    }
+
+    // 색상 선택 시 검정 동그라미 적용
+    els.colorCircles.forEach(circle => {
+        circle.addEventListener('click', (e) => {
+            els.colorCircles.forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            selectedColor = e.target.dataset.color;
+        });
+    });
+
+    els.addBtn.addEventListener('click', addMemo);
+    els.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addMemo(); });
+    els.sizeBtns.forEach(btn => { btn.addEventListener('click', (e) => applySize(e.target.dataset.size)); });
+
+    // 설정창 열기 / 닫기
+    els.settingsBtn.addEventListener('click', () => els.settingsModal.style.display = 'block');
+    els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
+
+    // 색상 묶음 실시간 적용
+    function applyColors() {
+        els.root.style.setProperty('--bg-color', els.bgColor.value);
+        els.root.style.setProperty('--memo-bg', els.memoBg.value);
+        els.root.style.setProperty('--primary-color', els.primaryColor.value);
+        els.root.style.setProperty('--text-color', els.textColor.value);
+        updateGeneratedLink();
+    }
+
+    [els.bgColor, els.memoBg, els.primaryColor, els.textColor].forEach(el => {
+        el.addEventListener('input', applyColors);
+    });
+
+    // 5. 노션용 URL 생성 로직
+    function updateGeneratedLink() {
+        const url = new URL(window.location.href.split('?')[0]);
+        url.searchParams.set('embed', 'true');
+        url.searchParams.set('bg', els.bgColor.value.replace('#', ''));
+        url.searchParams.set('mbg', els.memoBg.value.replace('#', ''));
+        url.searchParams.set('pc', els.primaryColor.value.replace('#', ''));
+        url.searchParams.set('tc', els.textColor.value.replace('#', ''));
+        els.generatedLink.value = url.href;
+    }
+
+    // 5. 노션 링크로 들어왔을 때 설정창 숨기기 및 색상 로드
+    function loadConfigFromURL() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('embed') === 'true') {
+                els.settingsBtn.style.display = 'none';
+                if(params.get('bg')) els.root.style.setProperty('--bg-color', '#' + params.get('bg'));
+                if(params.get('mbg')) els.root.style.setProperty('--memo-bg', '#' + params.get('mbg'));
+                if(params.get('pc')) els.root.style.setProperty('--primary-color', '#' + params.get('pc'));
+                if(params.get('tc')) els.root.style.setProperty('--text-color', '#' + params.get('tc'));
+                return true;
+            }
+        } catch(e) {}
+        return false;
+    }
+
+    els.copyBtn.addEventListener('click', () => {
+        els.generatedLink.select();
+        document.execCommand('copy');
+        els.copyBtn.innerText = '완료';
+        setTimeout(() => els.copyBtn.innerText = '복사', 1500);
+    });
+
+    init();
+</script>
+</body>
+</html>
