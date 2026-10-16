@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memo Widget</title>
+<style>
+    :root {
+        --base-font-size: 16px;
+        --primary-color: #6366f1; /* 버튼 및 활성화 색상 */
+        --bg-color: #ffffff;
+        --text-color: #1f2937;
+        --input-bg: #f3f4f6;
+        --border-color: #e5e7eb;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #1e1e1e; /* 위젯 밖 배경 (이미지 참고) */
+        font-size: var(--base-font-size);
+    }
+
+    .widget-container {
+        width: 100%;
+        max-width: 450px;
+        height: 600px;
+        background-color: var(--bg-color);
+        border-radius: 24px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .header {
+        font-size: 1.75em;
+        font-weight: 800;
+        color: #111827;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+    }
+
+    .input-section {
+        margin-bottom: 20px;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 16px 50px 16px 20px;
+        border: none;
+        border-radius: 100px;
+        background-color: var(--input-bg);
+        font-size: 1em;
+        outline: none;
+        color: var(--text-color);
+        transition: background-color 0.2s;
+    }
+
+    .input-wrapper input:focus {
+        background-color: #e5e7eb;
+    }
+
+    .input-wrapper input::placeholder {
+        color: #9ca3af;
+    }
+
+    .add-btn {
+        position: absolute;
+        right: 8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        font-size: 1.2em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .add-btn:active {
+        transform: scale(0.95);
+    }
+
+    .color-picker {
+        display: flex;
+        gap: 8px;
+        padding: 0 10px;
+    }
+
+    .color-circle {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .color-circle.active {
+        border-color: #374151;
+        transform: scale(1.1);
+    }
+
+    /* 메모 목록 영역 */
+    .memo-list {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .memo-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .memo-list::-webkit-scrollbar-thumb {
+        background-color: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .empty-state {
+        margin: auto;
+        color: #9ca3af;
+        font-size: 1em;
+        font-weight: 500;
+    }
+
+    .memo-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        word-break: break-word;
+        position: relative;
+        gap: 12px;
+    }
+
+    .memo-item .color-tag {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .memo-text {
+        flex: 1;
+        font-size: 0.95em;
+        color: var(--text-color);
+        line-height: 1.4;
+    }
+
+    .delete-btn {
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 1.2em;
+        padding: 4px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .memo-item:hover .delete-btn {
+        opacity: 1;
+    }
+    .delete-btn:hover {
+        color: #ef4444;
+    }
+
+    /* 하단 사이즈 조절 (S, M, L) */
+    .size-controls {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        gap: 6px;
+        background-color: var(--bg-color);
+    }
+
+    .size-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background-color: white;
+        color: #6b7280;
+        font-size: 0.7em;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .size-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+</style>
+</head>
+<body>
+
+<div class="widget-container">
+    <div class="header">MEMO</div>
+    
+    <div class="input-section">
+        <div class="input-wrapper">
+            <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
+            <button class="add-btn" id="add-btn">+</button>
+        </div>
+        <div class="color-picker" id="color-picker">
+            <div class="color-circle active" style="background-color: #ffffff; border: 1px solid #d1d5db;" data-color="#ffffff"></div>
+            <div class="color-circle" style="background-color: #f472b6;" data-color="#f472b6"></div>
+            <div class="color-circle" style="background-color: #60a5fa;" data-color="#60a5fa"></div>
+            <div class="color-circle" style="background-color: #4ade80;" data-color="#4ade80"></div>
+            <div class="color-circle" style="background-color: #fef08a;" data-color="#fef08a"></div>
+            <div class="color-circle" style="background-color: #fb923c;" data-color="#fb923c"></div>
+        </div>
+    </div>
+
+    <div class="memo-list" id="memo-list">
+        <!-- 메모 렌더링 영역 -->
+    </div>
+
+    <div class="size-controls" id="size-controls">
+        <button class="size-btn" data-size="14">S</button>
+        <button class="size-btn active" data-size="16">M</button>
+        <button class="size-btn" data-size="18">L</button>
+    </div>
+</div>
+
+<script>
+    const els = {
+        input: document.getElementById('memo-input'),
+        addBtn: document.getElementById('add-btn'),
+        colorPicker: document.getElementById('color-picker'),
+        colorCircles: document.querySelectorAll('.color-circle'),
+        memoList: document.getElementById('memo-list'),
+        sizeControls: document.getElementById('size-controls'),
+        sizeBtns: document.querySelectorAll('.size-btn'),
+        root: document.documentElement
+    };
+
+    let selectedColor = '#ffffff';
+    let memos = JSON.parse(localStorage.getItem('custom_memos')) || [];
+    let currentSize = localStorage.getItem('custom_memo_size') || '16';
+
+    // 초기화
+    function init() {
+        applySize(currentSize);
+        renderMemos();
+    }
+
+    // 메모 렌더링
+    function renderMemos() {
+        els.memoList.innerHTML = '';
+        if (memos.length === 0) {
+            els.memoList.innerHTML = '<div class="empty-state">No memos yet</div>';
+            return;
+        }
+
+        memos.forEach((memo) => {
+            const item = document.createElement('div');
+            item.className = 'memo-item';
+            
+            const colorTag = document.createElement('div');
+            colorTag.className = 'color-tag';
+            colorTag.style.backgroundColor = memo.color;
+            if(memo.color === '#ffffff') colorTag.style.border = '1px solid #d1d5db';
+
+            const text = document.createElement('div');
+            text.className = 'memo-text';
+            text.innerText = memo.text;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = () => deleteMemo(memo.id);
+
+            item.appendChild(colorTag);
+            item.appendChild(text);
+            item.appendChild(deleteBtn);
+            
+            els.memoList.appendChild(item);
+        });
+    }
+
+    // 메모 추가
+    function addMemo() {
+        const text = els.input.value.trim();
+        if (!text) return;
+
+        const newMemo = {
+            id: Date.now(),
+            text: text,
+            color: selectedColor
+        };
+
+        memos.push(newMemo);
+        saveMemos();
+        els.input.value = '';
+        renderMemos();
+    }
+
+    // 메모 삭제
+    function deleteMemo(id) {
+        memos = memos.filter(memo => memo.id !== id);
+        saveMemos();
+        renderMemos();
+    }
+
+    // 로컬 스토리지 저장
+    function saveMemos() {
+        localStorage.setItem('custom_memos', JSON.stringify(memos));
+    }
+
+    // 색상 선택 이벤트
+    els.colorCircles.forEach(circle => {
+        circle.addEventListener('click', (e) => {
+            els.colorCircles.forEach(c => c.classList.remove('active'));
+            const target = e.target;
+            target.classList.add('active');
+            selectedColor = target.dataset.color;
+        });
+    });
+
+    // 버튼 및 엔터키 입력 처리
+    els.addBtn.addEventListener('click', addMemo);
+    els.input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addMemo();
+    });
+
+    // 폰트 크기 변경 (S, M, L)
+    function applySize(size) {
+        els.root.style.setProperty('--base-font-size', size + 'px');
+        els.sizeBtns.forEach(btn => {
+            if (btn.dataset.size === size) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        localStorage.setItem('custom_memo_size', size);
+    }
+
+    els.sizeBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            applySize(e.target.dataset.size);
+        });
+    });
+
+    // 실행
+    init();
+</script>
+</body>
+</html>
