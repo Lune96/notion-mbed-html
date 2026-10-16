@@ -22,7 +22,6 @@
         overflow: hidden;
     }
 
-    /* 위젯 레이아웃 */
     #widget-container {
         flex: 1; display: flex; flex-direction: column; justify-content: space-between;
         padding: 5vw 6vw; box-sizing: border-box; background-color: var(--bg-color);
@@ -36,7 +35,6 @@
     .bottom-section { display: flex; align-items: flex-end; justify-content: flex-start; flex: 1; padding-bottom: 2vw; }
     #disp-dday { font-size: var(--dday-size); font-weight: 800; letter-spacing: -0.04em; line-height: 0.9; color: var(--dday-color); transition: color 0.3s; }
 
-    /* 설정 UI */
     #settings-btn { position: fixed; top: 20px; right: 20px; font-size: 24px; background: transparent; border: none; color: #888; cursor: pointer; z-index: 100; transition: color 0.3s; }
     #settings-btn:hover { color: #333; }
     
@@ -46,37 +44,18 @@
         box-shadow: -4px 0 15px rgba(0,0,0,0.1); z-index: 101; overflow-y: auto;
     }
 
-    /* 그룹화용 배경 박스 */
-    .setting-category {
-        background-color: #f7f7f7; border: 1px solid #ececec; border-radius: 12px;
-        padding: 18px 15px; margin-bottom: 20px;
-    }
+    .setting-category { background-color: #f7f7f7; border: 1px solid #ececec; border-radius: 12px; padding: 18px 15px; margin-bottom: 20px; }
     .setting-category .setting-group { margin-bottom: 15px; }
     .setting-category .setting-group:last-child { margin-bottom: 0; }
     .setting-label { font-size: 13px; color: #333; margin-bottom: 8px; display: block; font-weight: 500; }
     
-    /* 바 형태의 입력창 스타일 */
-    .input-bar {
-        background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;
-        padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    }
-    .input-bar input[type="text"], .input-bar input[type="date"], .format-select {
-        border: none; background: transparent; outline: none; font-size: 14px; color: #333; flex: 1; font-weight: 500; font-family: inherit; cursor: pointer;
-    }
-    .input-bar input[type="color"] {
-        border: none; background: transparent; width: 28px; height: 28px; padding: 0; cursor: pointer; border-radius: 4px;
-    }
-    .input-bar input[type="range"] {
-        flex: 1; accent-color: #555; height: 4px; border-radius: 2px; margin-right: 10px;
-    }
+    .input-bar { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .input-bar input[type="text"], .input-bar input[type="date"], .format-select { border: none; background: transparent; outline: none; font-size: 14px; color: #333; flex: 1; font-weight: 500; font-family: inherit; cursor: pointer; }
+    .input-bar input[type="color"] { border: none; background: transparent; width: 28px; height: 28px; padding: 0; cursor: pointer; border-radius: 4px; }
+    .input-bar input[type="range"] { flex: 1; accent-color: #555; height: 4px; border-radius: 2px; margin-right: 10px; }
 
     .num-input-wrap { display: flex; align-items: center; justify-content: flex-end; width: 75px; }
-    .num-input { 
-        width: 45px; background-color: #f4f4f4; border: 1px solid #c0c0c0; border-radius: 4px; 
-        padding: 4px 6px; text-align: right; font-size: 13px; color: #333; font-weight: 600; 
-        outline: none; font-family: inherit; -moz-appearance: textfield; 
-        transition: border-color 0.2s, background-color 0.2s;
-    }
+    .num-input { width: 45px; background-color: #f4f4f4; border: 1px solid #c0c0c0; border-radius: 4px; padding: 4px 6px; text-align: right; font-size: 13px; color: #333; font-weight: 600; outline: none; font-family: inherit; -moz-appearance: textfield; transition: border-color 0.2s, background-color 0.2s; }
     .num-input:focus { border-color: #888; background-color: #ffffff; }
     .num-input::-webkit-outer-spin-button, .num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .unit { font-size: 13px; color: #666; font-weight: 600; margin-left: 4px; }
@@ -98,7 +77,7 @@
     <div id="settings-modal">
         <button class="close-btn" id="close-settings">Close</button>
         
-        <!-- Text 그룹 -->
+        <!-- Text 구역 -->
         <div class="setting-category">
             <div class="setting-group">
                 <label class="setting-label">Text</label>
@@ -122,3 +101,180 @@
                     <input type="text" id="inp-txt-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
                     <input type="color" id="inp-txt-color" value="#000000">
                 </div>
+            </div>
+        </div>
+        
+        <!-- Date 구역 (요청하신 4개 항목 묶음) -->
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Date</label>
+                <div class="input-bar"><input type="date" id="inp-day" value="2000-01-01"></div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Date Format</label>
+                <div class="input-bar">
+                    <select id="inp-date-format" class="format-select">
+                        <option value="yyyy-mm-dd" selected>yyyy-mm-dd</option>
+                        <option value="yyyy_mm_dd">yyyy_mm_dd</option>
+                        <option value="yyyy/mm/dd">yyyy/mm/dd</option>
+                        <option value="yyyy.mm.dd">yyyy.mm.dd</option>
+                        <option value="yyyymmdd">yyyymmdd</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Date Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-day" min="0.1" max="50" step="0.1" value="7">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-day" class="num-input" value="7" min="0.1" max="50" step="0.1">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Date Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-day-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-day-color" value="#000000">
+                </div>
+            </div>
+        </div>
+
+        <!-- D-day 구역 (요청하신 2개 항목 묶음) -->
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">D-day Size</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-sz-dday" min="0.1" max="50" step="0.1" value="24">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-dday" class="num-input" value="24" min="0.1" max="50" step="0.1">
+                        <span class="unit">p</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">D-day Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-dday-hex" value="#000000" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-dday-color" value="#000000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Background 구역 -->
+        <div class="setting-category">
+            <div class="setting-group">
+                <label class="setting-label">Background Color</label>
+                <div class="input-bar">
+                    <input type="text" id="inp-bg-hex" value="#FFFFFF" maxlength="7" style="text-transform: uppercase;">
+                    <input type="color" id="inp-bg-color" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Background Opacity</label>
+                <div class="input-bar">
+                    <input type="range" id="inp-bg-op" min="0" max="100" step="1" value="100">
+                    <div class="num-input-wrap">
+                        <input type="number" id="inp-val-bg-op" class="num-input" value="100" min="0" max="100" step="1">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="link-section">
+            <div class="link-title">COPY LINK, PASTE INTO NOTION, AND CLICK 'EMBED'</div>
+            <div class="link-box">
+                <div class="notion-icon">N</div>
+                <input type="text" id="generated-link" readonly>
+                <button id="copy-btn" title="Copy to clipboard">📋</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 위젯 출력 영역 -->
+    <div id="widget-container">
+        <div class="top-section">
+            <div id="disp-text">Text</div>
+            <div id="disp-day">2000-01-01</div>
+        </div>
+        <div class="bottom-section">
+            <div id="disp-dday">D-Day</div>
+        </div>
+    </div>
+
+<script>
+    // 1. 에러 전면 차단: 설정창 활성화 코드를 최상단에 독립 배치
+    try {
+        const sBtn = document.getElementById('settings-btn');
+        const sModal = document.getElementById('settings-modal');
+        const sClose = document.getElementById('close-settings');
+        if (sBtn && sModal) sBtn.addEventListener('click', () => sModal.style.display = 'block');
+        if (sClose && sModal) sClose.addEventListener('click', () => sModal.style.display = 'none');
+    } catch(e) { console.error("Modal Init Error", e); }
+
+    // 2. 메인 스크립트 (오류 보호막 적용)
+    try {
+        const els = {
+            inpText: document.getElementById('inp-text'), inpDay: document.getElementById('inp-day'),
+            selFormat: document.getElementById('inp-date-format'),
+            szTxt: document.getElementById('inp-sz-txt'), szDay: document.getElementById('inp-sz-day'), szDday: document.getElementById('inp-sz-dday'),
+            valTxt: document.getElementById('inp-val-txt'), valDay: document.getElementById('inp-val-day'), valDday: document.getElementById('inp-val-dday'),
+            bgHex: document.getElementById('inp-bg-hex'), bgColor: document.getElementById('inp-bg-color'),
+            bgOp: document.getElementById('inp-bg-op'), valBgOp: document.getElementById('inp-val-bg-op'),
+            txtHex: document.getElementById('inp-txt-hex'), txtColor: document.getElementById('inp-txt-color'),
+            dayHex: document.getElementById('inp-day-hex'), dayColor: document.getElementById('inp-day-color'),
+            ddayHex: document.getElementById('inp-dday-hex'), ddayColor: document.getElementById('inp-dday-color'),
+            dispText: document.getElementById('disp-text'), dispDay: document.getElementById('disp-day'), dispDday: document.getElementById('disp-dday'),
+            generatedLink: document.getElementById('generated-link'), copyBtn: document.getElementById('copy-btn')
+        };
+
+        // 컬러 피커 오류 방지 유틸리티
+        function safeSetColor(el, val) {
+            if(!el || !val) return;
+            try {
+                let c = val.replace(/#/g, '');
+                if(c.length === 3) c = c.split('').map(x=>x+x).join('');
+                if(c.length === 6) el.value = '#' + c.toLowerCase();
+            } catch(e) {}
+        }
+
+        function hexToRgba(hex, opacity) {
+            if(!hex) return 'transparent';
+            let c = hex.replace(/#/g, '');
+            if(c.length === 3) c = c.split('').map(x=>x+x).join('');
+            const r = parseInt(c.slice(0, 2), 16) || 0;
+            const g = parseInt(c.slice(2, 4), 16) || 0;
+            const b = parseInt(c.slice(4, 6), 16) || 0;
+            return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+        }
+
+        function updateDdayCalc() {
+            try {
+                if(!els.inpDay || !els.dispDay || !els.dispDday || !els.selFormat) return;
+                
+                const dateVal = els.inpDay.value;
+                if (!dateVal) {
+                    els.dispDay.innerText = "";
+                    els.dispDday.innerText = "D-?";
+                    return;
+                }
+
+                const parts = dateVal.split('-');
+                const y = parts[0];
+                const m = parts[1] || '01';
+                const d = parts[2] || '01';
+                
+                let formatStr = els.selFormat.value || 'yyyy-mm-dd';
+                let displayStr = formatStr.replace('yyyy', y).replace('mm', m).replace('dd', d);
+                els.dispDay.innerText = displayStr;
+
+                const targetDate = new Date(y, parseInt(m) - 1, d);
+                if (isNaN(targetDate.getTime())) {
+                    els.dispDday
