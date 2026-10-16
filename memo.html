@@ -6,9 +6,9 @@
 <title>Custom Memo Widget</title>
 <style>
     :root {
-        --scale: 1; /* S, M, L 비율 계수 */
+        --scale: 1; 
         --primary-color: #6366f1;
-        --bg-color: #ffffff; /* 위젯 본체 색상 */
+        --bg-color: #ffffff; 
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
@@ -17,30 +17,31 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 1. 위젯 밖쪽 가장자리 배경은 항상 투명하게 뚫어둠 */
+    /* 1. 위젯 밖쪽 배경을 완벽하게 투명하게 처리 (하얀 여백 제거) */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
         margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
     }
 
-    /* 3. 완벽한 노션 드래그 대응 반응형 래퍼 (vmin 단위 활용) */
     .scale-wrapper {
         font-size: calc(clamp(11px, 4.5vmin, 20px) * var(--scale));
         width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
-        padding: 1.5em; /* 둥근 모서리와 그림자 보존 여백 */
+        background-color: transparent !important;
+        padding: 0.5em; 
     }
 
     body.embed-mode .scale-wrapper {
         font-size: calc(clamp(10px, 4.5vmin, 24px) * var(--scale));
+        padding: 0;
     }
 
-    /* 위젯 본체 (둥근 네모 모양 완벽 유지) */
+    /* 위젯 본체 */
     .widget-container {
         width: 100%; max-width: 28em; height: 100%;
         background-color: var(--bg-color); 
-        border-radius: 1.5em; /* 노션 왼쪽 둥근 모서리 디자인 */
+        border-radius: 1.5em; 
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
@@ -58,20 +59,19 @@
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
 
-    /* 아이콘들을 1px 오차 없이 중앙에 정렬 */
     .center-icon {
         display: flex; justify-content: center; align-items: center; 
         line-height: 0 !important; padding: 0 !important; margin: 0;
     }
 
+    /* 3. + 버튼 크기 축소 및 위치 미세 조정 */
     .add-btn {
-        position: absolute; right: 0.5em; width: 2em; height: 2em; border-radius: 50%;
+        position: absolute; right: 0.6em; width: 1.7em; height: 1.7em; border-radius: 50%;
         background-color: var(--primary-color); color: white; border: none; 
-        font-size: 1.2em; cursor: pointer; transition: transform 0.1s;
+        font-size: 1.1em; cursor: pointer; transition: transform 0.1s;
     }
     .add-btn:active { transform: scale(0.95); }
 
-    /* 색상 버튼들 크기 및 비율 */
     .color-picker { display: flex; gap: 0.4em; padding: 0 0.8em; }
     .color-circle {
         width: 0.9em; height: 0.9em; border-radius: 50%; cursor: pointer;
@@ -79,24 +79,22 @@
     }
     .color-circle.active { border: max(2px, 0.15em) solid #1f2937; transform: scale(1.15); }
     
-    /* 투명(색상 없음) 버튼: 부드러운 회색 사선(대각선) 처리 */
     .color-circle[data-color="none"] {
         background: linear-gradient(to top right, transparent 46%, #d1d5db 46%, #d1d5db 54%, transparent 54%), #ffffff;
         border: max(1px, 0.08em) solid #d1d5db;
     }
     .color-circle[data-color="none"].active { border: max(2px, 0.15em) solid #1f2937; }
 
-    .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; padding-bottom: 3.5em; padding-right: 0.4em; }
+    .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; padding-bottom: 3em; padding-right: 0.4em; }
     .memo-list::-webkit-scrollbar { width: 0.4em; }
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
 
-    /* 메모 아이템 (체크박스 위치 단단히 고정 및 우측 아이콘 밀착) */
+    /* 4. 메모바 모서리 곡률 조정 (완만하지 않고 사각형 느낌이 살짝 나는 라운드) */
     .memo-item {
         display: flex; align-items: center; 
-        /* 색상 띠 유무와 무관하게 좌측 패딩 1.2em 강제 고정 */
         padding: 0.8em 0.8em 0.8em 1.2em; 
-        background-color: var(--memo-bg); border-radius: 1.2em; 
+        background-color: var(--memo-bg); border-radius: 0.8em; 
         position: relative; gap: 0.4em; overflow: hidden;
     }
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.4em; }
@@ -107,38 +105,35 @@
     }
     .check-btn.checked { background-color: #cbd5e1; border-color: #cbd5e1; }
 
-    /* 2. 텍스트 수정 시 파란색 밑줄 UI 활성화 */
     .memo-text { 
         flex: 1; font-size: 0.95em; color: var(--text-color); line-height: 1.4; outline: none; word-break: break-word; 
-        border-bottom: 2px solid transparent; /* 평상시엔 투명 선 */
+        border-bottom: 2px solid transparent; 
         padding-bottom: 2px;
         transition: border-bottom-color 0.2s;
     }
     .memo-text:focus { 
-        border-bottom-color: var(--primary-color); /* 포커스(클릭) 시 파란색 선 나타남 */
+        border-bottom-color: var(--primary-color); 
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    /* 1. 별 아이콘을 오른쪽으로 띄우기 위해 약간의 margin 추가 */
     .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; width: 1.5em; height: 1.5em; margin-left: 0.2em; }
     .star-btn.starred { color: #fbbf24; }
 
     .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.4em; width: 1.5em; height: 1.5em; }
     .delete-btn:hover { color: #ef4444; }
 
-    /* S/M/L 사이즈 컨트롤 */
+    /* 2. S/M/L 사이즈 컨트롤 배경색(박스) 삭제 */
     .size-controls { 
-        position: absolute; bottom: 1.5em; right: 1.5em; display: flex; gap: 0.4em; 
-        background-color: var(--memo-bg); border-radius: 1em; padding: 0.3em; 
+        position: absolute; bottom: 1.2em; right: 1.2em; display: flex; gap: 0.4em; 
+        background-color: transparent; padding: 0; 
     }
-    body.embed-mode .size-controls { box-shadow: 0 0.2em 0.8em rgba(0,0,0,0.05); }
     .size-btn {
         width: 1.8em; height: 1.8em; border-radius: 50%; border: max(1px, 0.08em) solid var(--border-color); background-color: white;
         color: #6b7280; font-size: 0.7em; font-weight: bold; cursor: pointer;
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 모달 설정창 UI (비율에 영향받지 않도록 px로 안전 고정) */
+    /* 설정창 UI */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 100; text-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -235,7 +230,6 @@
 </div>
 
 <script>
-// 오류 없는 스크립트 실행 (즉시실행함수)
 (function() {
     try {
         const els = {
@@ -263,7 +257,6 @@
         let memos = [];
         let currentSize = 'M';
 
-        // 안전한 저장소 키 호출
         try {
             const stored = localStorage.getItem('custom_memos_vfinal_safe');
             if (stored) memos = JSON.parse(stored);
@@ -291,7 +284,6 @@
                 const item = document.createElement('div');
                 item.className = 'memo-item';
                 
-                // 패딩 고정으로 색상 유무와 무관하게 체크박스 밀림 방지
                 if (memo.color !== 'none') {
                     const colorBar = document.createElement('div');
                     colorBar.className = 'memo-color-bar';
@@ -364,7 +356,6 @@
             renderMemos();
         }
 
-        // 반응형 S/M/L 스케일 변경 함수
         function applySize(size) {
             let scale = 1;
             if (size === 'S' || size === '14') scale = 0.85;
@@ -429,7 +420,6 @@
             return false;
         }
 
-        // --- 이벤트 리스너 바인딩 ---
         els.colorCircles.forEach(circle => {
             circle.addEventListener('click', (e) => {
                 els.colorCircles.forEach(c => c.classList.remove('active'));
@@ -453,7 +443,7 @@
         [els.bgColor, els.memoBg, els.primaryColor, els.textColor].forEach(el => { 
             if(el) el.addEventListener('input', applySettings); 
         });
-        if(els.shadowCheckbox) els.shadowCheckbox.addEventListener('change', applySettings);
+        if(els.shadowCheckbox) els.shadowCheckbox.addEventListener('change', applySize(currentSize)); // 변경 감지 시 유지
 
         if(els.copyBtn) els.copyBtn.addEventListener('click', () => {
             if(!els.generatedLink) return;
@@ -463,7 +453,6 @@
             setTimeout(() => els.copyBtn.innerText = '복사', 1500);
         });
 
-        // 초기 실행
         if (!loadConfigFromURL()) {
             updateGeneratedLink();
         }
