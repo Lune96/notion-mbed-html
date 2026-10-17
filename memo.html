@@ -8,7 +8,7 @@
     :root {
         --scale: 1; 
         --primary-color: #6366f1;
-        --bg-color: #ffffff; /* 위젯 본체 배경색 복구 */
+        --bg-color: #ffffff; /* 위젯 본체 배경색 */
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
@@ -17,45 +17,51 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 위젯 바깥쪽 가장자리는 완전 투명 처리 */
+    /* 1. 위젯 밖쪽 가장자리 배경은 어떠한 환경에서도 완벽하게 투명하게 뚫어둠 */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
         margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
     }
 
+    /* 노션 드래그(비율) 대응 래퍼 */
     .scale-wrapper {
         font-size: calc(clamp(11px, 4.5vmin, 20px) * var(--scale));
         width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
         background-color: transparent !important;
-        padding: 0.5em; 
+        /* 위젯 바깥 투명 여백: 노션 배경이 비치도록 함 */
+        padding: 1.5em; 
     }
 
+    /* 임베드 시에도 여백과 폰트 스케일링을 유지하여 화면을 가득 채우지 않게 함 */
     body.embed-mode .scale-wrapper {
         font-size: calc(clamp(10px, 4.5vmin, 24px) * var(--scale));
-        padding: 0;
+        padding: 1.5em; /* 여백 유지 (하얀 모서리 생김 방지) */
     }
 
-    /* 위젯 본체: 배경색 적용 및 원래의 예쁜 둥근 모서리 유지 */
+    /* 3. 위젯 본체 가로폭 제한 복구 (Stretch 방지) */
     .widget-container {
-        width: 100%; max-width: 28em; height: 100%;
-        background-color: var(--bg-color) !important; /* 본체 배경색 정상 출력 */
-        border-radius: 2em; 
+        width: 100%; 
+        max-width: 28em; /* 가로폭을 조밀하게 제한 (사진의 상단 위젯처럼) */
+        height: 100%;
+        background-color: var(--bg-color); 
+        border-radius: 1.5em; /* 본체의 둥근 모서리 */
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
 
-    body.embed-mode .widget-container { max-width: 100%; }
+    /* max-width 100% 오버라이드 코드 삭제됨 (넓게 펴지는 것 방지) */
 
     .header { font-size: 1.6em; font-weight: 900; color: var(--text-color); margin-bottom: 1em; letter-spacing: -0.02em; word-break: break-all; }
 
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
+    /* 2. 입력창 모서리 곡률 (완만한 둥근 사각형) */
     .input-wrapper input {
         width: 100%; padding: 0.8em 3em 0.8em 1em; border: none; 
-        border-radius: 0.8em; 
+        border-radius: 0.8em; /* Pill 형태(알약)에서 둥근 사각형으로 수정 */
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
@@ -85,17 +91,17 @@
     }
     .color-circle[data-color="none"].active { border: max(2px, 0.15em) solid #1f2937; }
 
-    .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; padding-bottom: 3em; padding-right: 0.4em; }
+    .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; padding-bottom: 3.5em; padding-right: 0.4em; }
     .memo-list::-webkit-scrollbar { width: 0.4em; }
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
 
-    /* 등록된 메모바: 완만한 라운드 적용 */
+    /* 2. 등록된 메모바 모서리 곡률 (완만한 둥근 사각형) */
     .memo-item {
         display: flex; align-items: center; 
         padding: 0.8em 0.8em 0.8em 1.2em; 
         background-color: var(--memo-bg); 
-        border-radius: 0.8em; 
+        border-radius: 0.8em; /* Pill 형태에서 둥근 사각형으로 통일 */
         position: relative; gap: 0.4em; overflow: hidden;
     }
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.4em; }
@@ -117,14 +123,13 @@
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    /* 별 아이콘 오른쪽 끝으로 바짝 밀착 */
+    /* 별 아이콘을 오른쪽 끝으로 바짝 밀착 */
     .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; width: 1.5em; height: 1.5em; margin-left: auto; }
     .star-btn.starred { color: #fbbf24; }
 
     .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.4em; width: 1.5em; height: 1.5em; }
     .delete-btn:hover { color: #ef4444; }
 
-    /* S/M/L 사이즈 컨트롤 (배경 박스 없음) */
     .size-controls { 
         position: absolute; bottom: 1.2em; right: 1.2em; display: flex; gap: 0.4em; 
         background-color: transparent; padding: 0; 
@@ -173,7 +178,6 @@
         </label>
     </div>
 
-    <!-- 위젯 본체 배경색 설정 복구 -->
     <div class="setting-group">
         <label class="setting-label">위젯 본체 배경색</label>
         <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
@@ -210,7 +214,6 @@
                 <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
                 <button class="add-btn center-icon" id="add-btn">+</button>
             </div>
-            <!-- 파스텔 톤 7가지 색상 -->
             <div class="color-picker" id="color-picker">
                 <div class="color-circle center-icon active" data-color="none"></div>
                 <div class="color-circle" style="background-color: #f87b9c;" data-color="#f87b9c"></div>
