@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- 노션 다크모드 iframe 하얀 배경 방지 -->
 <meta name="color-scheme" content="light dark">
 <title>Custom Memo Widget</title>
 <style>
     :root {
         --scale: 1; 
         --primary-color: #6366f1;
-        --bg-color: #ffffff; /* 위젯 본체 배경색 */
+        --bg-color: #ffffff;
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
@@ -19,38 +18,32 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 위젯 밖쪽 배경을 완벽하게 투명하게 처리 */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
         margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
+        transition: background-color 0.1s ease;
     }
 
-    /* 3. 상단 위젯처럼 완벽하고 조화로운 비율 조절을 위한 Container Query 래퍼 */
     .app-wrapper {
-        container-type: inline-size; /* 오직 '가로폭'만을 기준으로 자식 요소들의 크기를 계산함 */
+        container-type: inline-size;
         width: 100vw; height: 100vh;
         max-width: 450px; max-height: 800px;
         margin: 0 auto;
         display: flex; justify-content: center; align-items: center;
-        /* 위젯 바깥 투명 여백 */
-        padding: 4cqi; 
+        padding: 1.5em; 
     }
 
-    /* 노션 임베드 시 제약을 풀고 가득 채우되 컨테이너 비율 유지 */
     body.embed-mode .app-wrapper {
         max-width: 100%; max-height: 100vh;
     }
 
-    /* 위젯 본체 (곡률 4em 유지) */
     .widget-container {
         width: 100%; height: 100%;
         background-color: var(--bg-color); 
         border-radius: 4em; 
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
-        
-        /* 3. 폰트 크기를 컨테이너 가로폭(cqi)에 맞춰 고정! 세로를 늘려도 글씨가 비정상적으로 커지지 않음 */
         font-size: calc(clamp(11px, 3.8cqi, 20px) * var(--scale));
     }
 
@@ -59,7 +52,6 @@
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
-    /* 입력창 (곡률 4em 유지) */
     .input-wrapper input {
         width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; 
         border-radius: 4em; 
@@ -101,12 +93,11 @@
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
-    /* 1. 등록된 메모바 (곡률을 0.5em에서 0.6em으로 변경) */
     .memo-item {
         display: flex; align-items: center; 
         padding: 0.8em 0.4em 0.8em 1.2em; 
         background-color: var(--memo-bg); 
-        border-radius: 0.6em; /* 요청하신 곡률 */
+        border-radius: 0.5em; 
         position: relative; 
         gap: 0.2em; 
         overflow: hidden;
@@ -125,9 +116,7 @@
         padding-bottom: 2px;
         transition: border-bottom-color 0.2s;
     }
-    .memo-text:focus { 
-        border-bottom-color: var(--primary-color); 
-    }
+    .memo-text:focus { border-bottom-color: var(--primary-color); }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
     .star-btn, .delete-btn { 
@@ -140,11 +129,10 @@
     .delete-btn { color: #9ca3af; font-size: 1.4em; }
     .delete-btn:hover { color: #ef4444; }
 
-    /* 2. S/M/L 사이즈 버튼 위치 왼쪽으로 살짝 이동 */
     .size-controls { 
         position: absolute; 
         bottom: 0.8em; 
-        right: 1.6em; /* 기존 1.2em에서 1.6em으로 변경하여 왼쪽으로 밀림 효과 */
+        right: 1.6em; 
         display: flex; gap: 0.4em; 
         background-color: transparent; padding: 0; 
     }
@@ -154,7 +142,6 @@
     }
     .size-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-    /* 모달 설정창 UI */
     #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 100; text-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     #settings-modal {
         display: none; position: fixed; top: 0; right: 0; width: 320px; height: 100vh;
@@ -179,24 +166,20 @@
 
 <div id="settings-modal">
     <button class="close-btn" id="close-settings">닫기</button>
-    
     <div class="setting-group">
         <label class="setting-label">위젯 제목</label>
         <input type="text" class="setting-input-text" id="inp-title" value="MEMO" placeholder="MEMO">
     </div>
-
     <div class="setting-group">
         <label class="setting-label">그림자 표시</label>
         <label class="checkbox-wrap">
             <input type="checkbox" id="inp-shadow" checked style="width:16px; height:16px;"> 그림자 켜기
         </label>
     </div>
-
     <div class="setting-group">
         <label class="setting-label">위젯 본체 배경색</label>
         <input type="color" class="setting-input" id="inp-bg-color" value="#ffffff">
     </div>
-
     <div class="setting-group">
         <label class="setting-label">입력창 & 메모 배경색</label>
         <input type="color" class="setting-input" id="inp-memo-bg" value="#f3f4f6">
@@ -209,7 +192,6 @@
         <label class="setting-label">텍스트 색상</label>
         <input type="color" class="setting-input" id="inp-text-color" value="#1f2937">
     </div>
-
     <div class="link-section">
         <label class="setting-label">노션 임베드용 링크</label>
         <div class="link-box">
@@ -222,7 +204,6 @@
 <div class="app-wrapper">
     <div class="widget-container" id="widget-container">
         <div class="header" id="widget-header">MEMO</div>
-        
         <div class="input-section">
             <div class="input-wrapper">
                 <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
@@ -238,9 +219,7 @@
                 <div class="color-circle" style="background-color: #f7b078;" data-color="#f7b078"></div>
             </div>
         </div>
-
         <div class="memo-list" id="memo-list"></div>
-
         <div class="size-controls" id="size-controls">
             <button class="size-btn center-icon" data-size="S">S</button>
             <button class="size-btn center-icon active" data-size="M">M</button>
@@ -277,14 +256,13 @@
         let memos = [];
         let currentSize = 'M';
 
-        // 오류 방지를 위한 캐시 키 갱신
         try {
-            const stored = localStorage.getItem('custom_memos_v12_cqi');
+            const stored = localStorage.getItem('custom_memos_v13_final');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_v12_cqi') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v13_final') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -373,7 +351,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_v12_cqi', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v13_final', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -387,7 +365,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_v12_cqi', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_v13_final', size); } catch(e) {}
         }
 
         function applySettings() {
@@ -414,6 +392,17 @@
             } catch(e) {}
         }
 
+        function initDarkModeScript() {
+            const updateBg = (e) => {
+                const bg = e.matches ? '#191919' : 'transparent';
+                document.documentElement.style.setProperty('background-color', bg, 'important');
+                document.body.style.setProperty('background-color', bg, 'important');
+            };
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            updateBg(mq);
+            mq.addEventListener('change', updateBg);
+        }
+
         function loadConfigFromURL() {
             try {
                 const params = new URLSearchParams(window.location.search);
@@ -421,6 +410,8 @@
                     if(els.settingsBtn) els.settingsBtn.style.display = 'none';
                     document.body.classList.add('embed-mode');
                     
+                    initDarkModeScript();
+
                     if(params.get('title') && els.titleInput && els.header) {
                         const decodedTitle = decodeURIComponent(params.get('title'));
                         els.header.innerText = decodedTitle || 'MEMO';
