@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 노션 다크모드에서 iframe이 하얗게 뜨는 현상을 완벽 차단하는 핵심 태그 -->
+<meta name="color-scheme" content="light dark">
 <title>Custom Memo Widget</title>
 <style>
     :root {
@@ -17,51 +19,47 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 1. 위젯 밖쪽 가장자리 배경은 어떠한 환경에서도 완벽하게 투명하게 뚫어둠 */
+    /* 위젯 밖쪽 배경을 완벽하게 투명하게 처리 */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
         margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
     }
 
-    /* 노션 드래그(비율) 대응 래퍼 */
     .scale-wrapper {
         font-size: calc(clamp(11px, 4.5vmin, 20px) * var(--scale));
         width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
         background-color: transparent !important;
-        /* 위젯 바깥 투명 여백: 노션 배경이 비치도록 함 */
-        padding: 1.5em; 
+        padding: 1.5em; /* 둥근 모서리와 그림자가 잘리지 않게 하는 여백 */
     }
 
-    /* 임베드 시에도 여백과 폰트 스케일링을 유지하여 화면을 가득 채우지 않게 함 */
     body.embed-mode .scale-wrapper {
         font-size: calc(clamp(10px, 4.5vmin, 24px) * var(--scale));
-        padding: 1.5em; /* 여백 유지 (하얀 모서리 생김 방지) */
+        padding: 1.5em;
     }
 
-    /* 3. 위젯 본체 가로폭 제한 복구 (Stretch 방지) */
+    /* 위젯 본체 */
     .widget-container {
-        width: 100%; 
-        max-width: 28em; /* 가로폭을 조밀하게 제한 (사진의 상단 위젯처럼) */
-        height: 100%;
+        width: 100%; max-width: 28em; height: 100%;
         background-color: var(--bg-color); 
-        border-radius: 1.5em; /* 본체의 둥근 모서리 */
+        border-radius: 2em; /* 본체의 둥근 모서리 유지 */
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
 
-    /* max-width 100% 오버라이드 코드 삭제됨 (넓게 펴지는 것 방지) */
+    /* 노션에서 가로로 쭉 늘어나게 설정 (Stretch 허용) */
+    body.embed-mode .widget-container { max-width: 100%; }
 
     .header { font-size: 1.6em; font-weight: 900; color: var(--text-color); margin-bottom: 1em; letter-spacing: -0.02em; word-break: break-all; }
 
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
-    /* 2. 입력창 모서리 곡률 (완만한 둥근 사각형) */
+    /* 3. 입력창 모서리를 다시 완벽한 반원(Pill 형태)으로 복구 */
     .input-wrapper input {
-        width: 100%; padding: 0.8em 3em 0.8em 1em; border: none; 
-        border-radius: 0.8em; /* Pill 형태(알약)에서 둥근 사각형으로 수정 */
+        width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; 
+        border-radius: 4em; /* 알약 형태 */
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
@@ -72,7 +70,7 @@
     }
 
     .add-btn {
-        position: absolute; right: 0.6em; width: 1.7em; height: 1.7em; border-radius: 50%;
+        position: absolute; right: 0.6em; width: 1.8em; height: 1.8em; border-radius: 50%;
         background-color: var(--primary-color); color: white; border: none; 
         font-size: 1.1em; cursor: pointer; transition: transform 0.1s;
     }
@@ -96,15 +94,16 @@
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
 
-    /* 2. 등록된 메모바 모서리 곡률 (완만한 둥근 사각형) */
+    /* 3. 등록된 메모바: 반원(Pill 형태)으로 복구 */
     .memo-item {
         display: flex; align-items: center; 
-        padding: 0.8em 0.8em 0.8em 1.2em; 
+        padding: 0.8em 1.2em 0.8em 1.2em; 
         background-color: var(--memo-bg); 
-        border-radius: 0.8em; /* Pill 형태에서 둥근 사각형으로 통일 */
+        border-radius: 4em; /* 알약 형태 */
         position: relative; gap: 0.4em; overflow: hidden;
     }
-    .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.4em; }
+    /* 색상바가 Pill 형태를 따라 자연스럽게 휘도록 처리 */
+    .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.6em; }
 
     .check-btn {
         width: 1.3em; height: 1.3em; border-radius: 50%; border: max(1px, 0.1em) solid #cbd5e1; background: transparent;
@@ -123,11 +122,16 @@
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    /* 별 아이콘을 오른쪽 끝으로 바짝 밀착 */
-    .star-btn { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #cbd5e1; width: 1.5em; height: 1.5em; margin-left: auto; }
+    /* 1. 별과 X 버튼: 클릭 영역을 아이콘 크기와 맞추어 불필요한 간격을 없앰 */
+    .star-btn, .delete-btn { 
+        background: transparent; border: none; cursor: pointer; 
+        display: flex; justify-content: center; align-items: center;
+        width: 1.4em; height: 1.4em; padding: 0;
+    }
+    /* 별 버튼을 오른쪽 끝으로 쭉 밀고, X버튼과 간격을 좁힘 */
+    .star-btn { color: #cbd5e1; font-size: 1.2em; margin-left: auto; margin-right: 0.2em; }
     .star-btn.starred { color: #fbbf24; }
-
-    .delete-btn { background: transparent; border: none; color: #9ca3af; cursor: pointer; font-size: 1.4em; width: 1.5em; height: 1.5em; }
+    .delete-btn { color: #9ca3af; font-size: 1.4em; }
     .delete-btn:hover { color: #ef4444; }
 
     .size-controls { 
@@ -214,6 +218,7 @@
                 <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
                 <button class="add-btn center-icon" id="add-btn">+</button>
             </div>
+            <!-- 파스텔 톤 7가지 색상 -->
             <div class="color-picker" id="color-picker">
                 <div class="color-circle center-icon active" data-color="none"></div>
                 <div class="color-circle" style="background-color: #f87b9c;" data-color="#f87b9c"></div>
@@ -263,13 +268,14 @@
         let memos = [];
         let currentSize = 'M';
 
+        // 오류 캐시 충돌 방지 버전 (v10)
         try {
-            const stored = localStorage.getItem('custom_memos_vfinal_safe');
+            const stored = localStorage.getItem('custom_memos_v10');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_vfinal_safe') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v10') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -358,7 +364,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_vfinal_safe', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v10', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -372,7 +378,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_vfinal_safe', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_v10', size); } catch(e) {}
         }
 
         function applySettings() {
