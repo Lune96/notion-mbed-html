@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- 노션 다크모드에서 iframe이 하얗게 뜨는 현상을 완벽 차단하는 핵심 태그 -->
+<!-- 노션 다크모드 iframe 하얀 배경 방지 -->
 <meta name="color-scheme" content="light dark">
 <title>Custom Memo Widget</title>
 <style>
@@ -31,7 +31,7 @@
         width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
         background-color: transparent !important;
-        padding: 1.5em; /* 둥근 모서리와 그림자가 잘리지 않게 하는 여백 */
+        padding: 1.5em; 
     }
 
     body.embed-mode .scale-wrapper {
@@ -39,7 +39,7 @@
         padding: 1.5em;
     }
 
-    /* 위젯 본체 */
+    /* 위젯 본체 (곡률 건드리지 않음: 2em 유지) */
     .widget-container {
         width: 100%; max-width: 28em; height: 100%;
         background-color: var(--bg-color); 
@@ -48,7 +48,6 @@
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
 
-    /* 노션에서 가로로 쭉 늘어나게 설정 (Stretch 허용) */
     body.embed-mode .widget-container { max-width: 100%; }
 
     .header { font-size: 1.6em; font-weight: 900; color: var(--text-color); margin-bottom: 1em; letter-spacing: -0.02em; word-break: break-all; }
@@ -56,10 +55,10 @@
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
-    /* 3. 입력창 모서리를 다시 완벽한 반원(Pill 형태)으로 복구 */
+    /* 입력창 (곡률 건드리지 않음: 4em 알약 형태 유지) */
     .input-wrapper input {
         width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; 
-        border-radius: 4em; /* 알약 형태 */
+        border-radius: 4em; 
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
@@ -89,20 +88,26 @@
     }
     .color-circle[data-color="none"].active { border: max(2px, 0.15em) solid #1f2937; }
 
-    .memo-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; padding-bottom: 3.5em; padding-right: 0.4em; }
+    /* 3. 메모 스크롤 하단 여백 대폭 추가 (S/M/L 버튼 겹침 방지) */
+    .memo-list { 
+        flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; 
+        padding-bottom: 4.5em; /* 기존 3.5em에서 4.5em으로 늘려 버튼과 겹치지 않게 보호 */
+        padding-right: 0.4em; 
+    }
     .memo-list::-webkit-scrollbar { width: 0.4em; }
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
-    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; }
+    .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
-    /* 3. 등록된 메모바: 반원(Pill 형태)으로 복구 */
+    /* 1, 2. 등록된 메모바 수정 (곡률 0.8em 사각형화 & 우측 여백 최소화) */
     .memo-item {
         display: flex; align-items: center; 
-        padding: 0.8em 1.2em 0.8em 1.2em; 
+        padding: 0.8em 0.4em 0.8em 1.2em; /* 우측 패딩을 1.2em에서 0.4em으로 줄여 아이콘을 벽으로 밂 */
         background-color: var(--memo-bg); 
-        border-radius: 4em; /* 알약 형태 */
-        position: relative; gap: 0.4em; overflow: hidden;
+        border-radius: 0.8em; /* 알약 형태가 아닌 사각형 느낌의 라운드로 수정 */
+        position: relative; 
+        gap: 0.2em; /* 내부 아이콘 간격을 0.4em에서 0.2em으로 좁힘 */
+        overflow: hidden;
     }
-    /* 색상바가 Pill 형태를 따라 자연스럽게 휘도록 처리 */
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.6em; }
 
     .check-btn {
@@ -122,20 +127,23 @@
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    /* 1. 별과 X 버튼: 클릭 영역을 아이콘 크기와 맞추어 불필요한 간격을 없앰 */
+    /* 2. 별과 X 버튼 크기 최적화 및 우측 밀착 */
     .star-btn, .delete-btn { 
         background: transparent; border: none; cursor: pointer; 
         display: flex; justify-content: center; align-items: center;
         width: 1.4em; height: 1.4em; padding: 0;
     }
-    /* 별 버튼을 오른쪽 끝으로 쭉 밀고, X버튼과 간격을 좁힘 */
-    .star-btn { color: #cbd5e1; font-size: 1.2em; margin-left: auto; margin-right: 0.2em; }
+    /* 별 버튼을 오른쪽 끝으로 밀어내고, 불필요한 우측 마진을 없앰 */
+    .star-btn { color: #cbd5e1; font-size: 1.2em; margin-left: auto; margin-right: 0; } 
     .star-btn.starred { color: #fbbf24; }
     .delete-btn { color: #9ca3af; font-size: 1.4em; }
     .delete-btn:hover { color: #ef4444; }
 
+    /* 3. S/M/L 사이즈 버튼 위치 하향 조정 */
     .size-controls { 
-        position: absolute; bottom: 1.2em; right: 1.2em; display: flex; gap: 0.4em; 
+        position: absolute; 
+        bottom: 0.8em; /* 기존 1.2em에서 0.8em으로 내려서 겹침을 방지 */
+        right: 1.2em; display: flex; gap: 0.4em; 
         background-color: transparent; padding: 0; 
     }
     .size-btn {
@@ -218,7 +226,6 @@
                 <input type="text" id="memo-input" placeholder="메모를 입력하세요" autocomplete="off">
                 <button class="add-btn center-icon" id="add-btn">+</button>
             </div>
-            <!-- 파스텔 톤 7가지 색상 -->
             <div class="color-picker" id="color-picker">
                 <div class="color-circle center-icon active" data-color="none"></div>
                 <div class="color-circle" style="background-color: #f87b9c;" data-color="#f87b9c"></div>
@@ -268,14 +275,14 @@
         let memos = [];
         let currentSize = 'M';
 
-        // 오류 캐시 충돌 방지 버전 (v10)
+        // 오류 방지를 위한 최신 캐시 키 사용
         try {
-            const stored = localStorage.getItem('custom_memos_v10');
+            const stored = localStorage.getItem('custom_memos_v11');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_v10') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v11') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -364,7 +371,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_v10', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v11', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -378,7 +385,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_v10', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_v11', size); } catch(e) {}
         }
 
         function applySettings() {
