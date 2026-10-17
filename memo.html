@@ -26,36 +26,40 @@
         margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
     }
 
-    .scale-wrapper {
-        font-size: calc(clamp(11px, 4.5vmin, 20px) * var(--scale));
-        width: 100%; height: 100%;
+    /* 3. 상단 위젯처럼 완벽하고 조화로운 비율 조절을 위한 Container Query 래퍼 */
+    .app-wrapper {
+        container-type: inline-size; /* 오직 '가로폭'만을 기준으로 자식 요소들의 크기를 계산함 */
+        width: 100vw; height: 100vh;
+        max-width: 450px; max-height: 800px;
+        margin: 0 auto;
         display: flex; justify-content: center; align-items: center;
-        background-color: transparent !important;
-        padding: 1.5em; 
+        /* 위젯 바깥 투명 여백 */
+        padding: 4cqi; 
     }
 
-    body.embed-mode .scale-wrapper {
-        font-size: calc(clamp(10px, 4.5vmin, 24px) * var(--scale));
-        padding: 1.5em;
+    /* 노션 임베드 시 제약을 풀고 가득 채우되 컨테이너 비율 유지 */
+    body.embed-mode .app-wrapper {
+        max-width: 100%; max-height: 100vh;
     }
 
-    /* 위젯 본체 (곡률 4em으로 수정됨) */
+    /* 위젯 본체 (곡률 4em 유지) */
     .widget-container {
-        width: 100%; max-width: 28em; height: 100%;
+        width: 100%; height: 100%;
         background-color: var(--bg-color); 
         border-radius: 4em; 
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
+        
+        /* 3. 폰트 크기를 컨테이너 가로폭(cqi)에 맞춰 고정! 세로를 늘려도 글씨가 비정상적으로 커지지 않음 */
+        font-size: calc(clamp(11px, 3.8cqi, 20px) * var(--scale));
     }
-
-    body.embed-mode .widget-container { max-width: 100%; }
 
     .header { font-size: 1.6em; font-weight: 900; color: var(--text-color); margin-bottom: 1em; letter-spacing: -0.02em; word-break: break-all; }
 
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
-    /* 입력창 (곡률 4em 적용) */
+    /* 입력창 (곡률 4em 유지) */
     .input-wrapper input {
         width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; 
         border-radius: 4em; 
@@ -97,12 +101,12 @@
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
-    /* 등록된 메모바 (곡률 0.5em으로 수정됨) */
+    /* 1. 등록된 메모바 (곡률을 0.5em에서 0.6em으로 변경) */
     .memo-item {
         display: flex; align-items: center; 
         padding: 0.8em 0.4em 0.8em 1.2em; 
         background-color: var(--memo-bg); 
-        border-radius: 0.5em; 
+        border-radius: 0.6em; /* 요청하신 곡률 */
         position: relative; 
         gap: 0.2em; 
         overflow: hidden;
@@ -136,10 +140,12 @@
     .delete-btn { color: #9ca3af; font-size: 1.4em; }
     .delete-btn:hover { color: #ef4444; }
 
+    /* 2. S/M/L 사이즈 버튼 위치 왼쪽으로 살짝 이동 */
     .size-controls { 
         position: absolute; 
         bottom: 0.8em; 
-        right: 1.2em; display: flex; gap: 0.4em; 
+        right: 1.6em; /* 기존 1.2em에서 1.6em으로 변경하여 왼쪽으로 밀림 효과 */
+        display: flex; gap: 0.4em; 
         background-color: transparent; padding: 0; 
     }
     .size-btn {
@@ -213,7 +219,7 @@
     </div>
 </div>
 
-<div class="scale-wrapper">
+<div class="app-wrapper">
     <div class="widget-container" id="widget-container">
         <div class="header" id="widget-header">MEMO</div>
         
@@ -271,13 +277,14 @@
         let memos = [];
         let currentSize = 'M';
 
+        // 오류 방지를 위한 캐시 키 갱신
         try {
-            const stored = localStorage.getItem('custom_memos_vfinal_safe');
+            const stored = localStorage.getItem('custom_memos_v12_cqi');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_vfinal_safe') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v12_cqi') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -366,7 +373,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_vfinal_safe', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v12_cqi', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -380,7 +387,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_vfinal_safe', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_v12_cqi', size); } catch(e) {}
         }
 
         function applySettings() {
