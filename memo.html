@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- 노션 다크모드 iframe 하얀 배경 방지 -->
 <meta name="color-scheme" content="light dark">
 <title>Custom Memo Widget</title>
 <style>
     :root {
         --scale: 1; 
         --primary-color: #6366f1;
-        --bg-color: #ffffff; /* 위젯 본체 배경색 */
+        --bg-color: #ffffff;
         --memo-bg: #f3f4f6;
         --text-color: #1f2937;
         --border-color: #e5e7eb;
@@ -19,7 +18,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 위젯 밖쪽 배경을 완벽하게 투명하게 처리 */
     html, body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: transparent !important;
@@ -40,12 +38,13 @@
         max-width: 100%; max-height: 100vh;
     }
 
-    /* 위젯 본체 (보내주신 스쿼클 마스크 적용) */
     .widget-container {
         width: 100%; height: 100%;
         background-color: var(--bg-color); 
-        border-radius: 2em; /* clip-path 미지원 브라우저용 예비값 */
-        clip-path: url(#apple-squircle); /* 핵심: 비율에 맞춰 부드럽게 잘라내는 마스크 */
+        
+        /* [수정됨] 노션 크기를 조절해도 64px 스쿼클 곡률이 완벽히 고정됩니다 */
+        border-radius: 64px 64px 64px 64px / 64px 64px 64px 64px;
+        
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
         font-size: calc(clamp(11px, 3.8cqi, 20px) * var(--scale));
@@ -56,10 +55,12 @@
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
-    /* 메모 입력창 (기존 곡률 4em 유지) */
     .input-wrapper input {
         width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; 
-        border-radius: 4em; 
+        
+        /* [수정됨] 64px 고정 곡률 적용 */
+        border-radius: 64px 64px 64px 64px / 64px 64px 64px 64px;
+        
         background-color: var(--memo-bg); font-size: 1em; outline: none; color: var(--text-color);
     }
     .input-wrapper input::placeholder { color: #9ca3af; }
@@ -98,12 +99,14 @@
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
-    /* 등록된 메모바 (기존 곡률 0.5em 유지) */
     .memo-item {
         display: flex; align-items: center; 
         padding: 0.8em 0.4em 0.8em 1.2em; 
         background-color: var(--memo-bg); 
-        border-radius: 0.5em; 
+        
+        /* [수정됨] 9px 고정 곡률 적용 */
+        border-radius: 9px 9px 9px 9px / 9px 9px 9px 9px;
+        
         position: relative; 
         gap: 0.2em; 
         overflow: hidden;
@@ -167,19 +170,6 @@
 </style>
 </head>
 <body>
-
-<!-- SVG 스쿼클 마스크 정의 (위젯 본체에 적용됨) -->
-<svg width="0" height="0" style="position:absolute;">
-  <defs>
-    <clipPath id="apple-squircle" clipPathUnits="objectBoundingBox">
-      <path d="M 0, 0.5 
-               C 0, 0.06, 0.06, 0, 0.5, 0 
-               C 0.94, 0, 1, 0.06, 1, 0.5 
-               C 1, 0.94, 0.94, 1, 0.5, 1 
-               C 0.06, 1, 0, 0.94, 0, 0.5 Z" />
-    </clipPath>
-  </defs>
-</svg>
 
 <button id="settings-btn" title="설정">⚙️</button>
 
@@ -276,12 +266,12 @@
         let currentSize = 'M';
 
         try {
-            const stored = localStorage.getItem('custom_memos_vfinal_squircle');
+            const stored = localStorage.getItem('custom_memos_v14_px');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_vfinal_squircle') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v14_px') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -370,7 +360,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_vfinal_squircle', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v14_px', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -384,7 +374,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_vfinal_squircle', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_v14_px', size); } catch(e) {}
         }
 
         function applySettings() {
