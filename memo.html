@@ -39,11 +39,11 @@
         padding: 1.5em;
     }
 
-    /* 위젯 본체 (곡률 건드리지 않음: 2em 유지) */
+    /* 위젯 본체 (곡률 4em으로 수정됨) */
     .widget-container {
         width: 100%; max-width: 28em; height: 100%;
         background-color: var(--bg-color); 
-        border-radius: 2em; /* 본체의 둥근 모서리 유지 */
+        border-radius: 4em; 
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
     }
@@ -55,7 +55,7 @@
     .input-section { margin-bottom: 1.2em; }
     .input-wrapper { position: relative; display: flex; align-items: center; margin-bottom: 0.8em; }
     
-    /* 입력창 (곡률 건드리지 않음: 4em 알약 형태 유지) */
+    /* 입력창 (곡률 4em 적용) */
     .input-wrapper input {
         width: 100%; padding: 0.8em 3em 0.8em 1.2em; border: none; 
         border-radius: 4em; 
@@ -88,24 +88,23 @@
     }
     .color-circle[data-color="none"].active { border: max(2px, 0.15em) solid #1f2937; }
 
-    /* 3. 메모 스크롤 하단 여백 대폭 추가 (S/M/L 버튼 겹침 방지) */
     .memo-list { 
         flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6em; 
-        padding-bottom: 4.5em; /* 기존 3.5em에서 4.5em으로 늘려 버튼과 겹치지 않게 보호 */
+        padding-bottom: 4.5em; 
         padding-right: 0.4em; 
     }
     .memo-list::-webkit-scrollbar { width: 0.4em; }
     .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
-    /* 1, 2. 등록된 메모바 수정 (곡률 0.8em 사각형화 & 우측 여백 최소화) */
+    /* 등록된 메모바 (곡률 0.5em으로 수정됨) */
     .memo-item {
         display: flex; align-items: center; 
-        padding: 0.8em 0.4em 0.8em 1.2em; /* 우측 패딩을 1.2em에서 0.4em으로 줄여 아이콘을 벽으로 밂 */
+        padding: 0.8em 0.4em 0.8em 1.2em; 
         background-color: var(--memo-bg); 
-        border-radius: 0.8em; /* 알약 형태가 아닌 사각형 느낌의 라운드로 수정 */
+        border-radius: 0.5em; 
         position: relative; 
-        gap: 0.2em; /* 내부 아이콘 간격을 0.4em에서 0.2em으로 좁힘 */
+        gap: 0.2em; 
         overflow: hidden;
     }
     .memo-color-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0.6em; }
@@ -127,22 +126,19 @@
     }
     .memo-text.checked-text { text-decoration: line-through; opacity: 0.4; border-bottom: none; }
 
-    /* 2. 별과 X 버튼 크기 최적화 및 우측 밀착 */
     .star-btn, .delete-btn { 
         background: transparent; border: none; cursor: pointer; 
         display: flex; justify-content: center; align-items: center;
         width: 1.4em; height: 1.4em; padding: 0;
     }
-    /* 별 버튼을 오른쪽 끝으로 밀어내고, 불필요한 우측 마진을 없앰 */
     .star-btn { color: #cbd5e1; font-size: 1.2em; margin-left: auto; margin-right: 0; } 
     .star-btn.starred { color: #fbbf24; }
     .delete-btn { color: #9ca3af; font-size: 1.4em; }
     .delete-btn:hover { color: #ef4444; }
 
-    /* 3. S/M/L 사이즈 버튼 위치 하향 조정 */
     .size-controls { 
         position: absolute; 
-        bottom: 0.8em; /* 기존 1.2em에서 0.8em으로 내려서 겹침을 방지 */
+        bottom: 0.8em; 
         right: 1.2em; display: flex; gap: 0.4em; 
         background-color: transparent; padding: 0; 
     }
@@ -275,14 +271,13 @@
         let memos = [];
         let currentSize = 'M';
 
-        // 오류 방지를 위한 최신 캐시 키 사용
         try {
-            const stored = localStorage.getItem('custom_memos_v11');
+            const stored = localStorage.getItem('custom_memos_vfinal_safe');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_v11') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_vfinal_safe') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -371,7 +366,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_v11', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_vfinal_safe', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -385,7 +380,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_v11', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_vfinal_safe', size); } catch(e) {}
         }
 
         function applySettings() {
