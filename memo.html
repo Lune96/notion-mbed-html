@@ -26,7 +26,7 @@
     }
 
     .app-wrapper {
-        container-type: inline-size;
+        container-type: size;
         width: 100vw; height: 100vh;
         max-width: 450px; max-height: 800px;
         margin: 0 auto;
@@ -42,9 +42,10 @@
         width: 100%; height: 100%;
         background-color: var(--bg-color); 
         border-radius: 0;
+        clip-path: url(#apple-squircle);
         padding: 1.8em; display: flex; flex-direction: column;
         box-shadow: var(--widget-shadow); position: relative; overflow: hidden;
-        font-size: calc(clamp(11px, 3.8cqi, 20px) * var(--scale));
+        font-size: calc(clamp(11px, 4cqh, 24px) * var(--scale));
     }
 
     .header { font-size: 1.6em; font-weight: 900; color: var(--text-color); margin-bottom: 1em; letter-spacing: -0.02em; word-break: break-all; }
@@ -90,7 +91,8 @@
         padding-right: 0.4em; 
     }
     .memo-list::-webkit-scrollbar { width: 0.4em; }
-    .memo-list::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 0.2em; }
+    .memo-list::-webkit-scrollbar-thumb { background-color: transparent; border-radius: 0.2em; }
+    .memo-list:hover::-webkit-scrollbar-thumb { background-color: var(--border-color); }
     .empty-state { margin: auto; color: #9ca3af; font-size: 1em; font-weight: 500; text-align: center; }
 
     .memo-item {
@@ -161,6 +163,18 @@
 </style>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <clipPath id="apple-squircle" clipPathUnits="objectBoundingBox">
+      <path d="M 0, 0.5 
+               C 0, 0.06, 0.06, 0, 0.5, 0 
+               C 0.94, 0, 1, 0.06, 1, 0.5 
+               C 1, 0.94, 0.94, 1, 0.5, 1 
+               C 0.06, 1, 0, 0.94, 0, 0.5 Z" />
+    </clipPath>
+  </defs>
+</svg>
 
 <button id="settings-btn" title="설정">⚙️</button>
 
@@ -257,12 +271,12 @@
         let currentSize = 'M';
 
         try {
-            const stored = localStorage.getItem('custom_memos_v15_zero_radius');
+            const stored = localStorage.getItem('custom_memos_v16_final');
             if (stored) memos = JSON.parse(stored);
             if (!Array.isArray(memos)) memos = [];
         } catch (e) { memos = []; }
 
-        try { currentSize = localStorage.getItem('custom_memo_size_v15_zero_radius') || 'M'; } catch (e) {}
+        try { currentSize = localStorage.getItem('custom_memo_size_v16_final') || 'M'; } catch (e) {}
 
         function renderMemos() {
             if(!els.memoList) return;
@@ -351,7 +365,7 @@
         }
 
         function saveAndRender() {
-            try { localStorage.setItem('custom_memos_v15_zero_radius', JSON.stringify(memos)); } catch(e) {}
+            try { localStorage.setItem('custom_memos_v16_final', JSON.stringify(memos)); } catch(e) {}
             renderMemos();
         }
 
@@ -365,7 +379,7 @@
                 if (btn.dataset.size === size) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-            try { localStorage.setItem('custom_memo_size_v15_zero_radius', size); } catch(e) {}
+            try { localStorage.setItem('custom_memo_size_v16_final', size); } catch(e) {}
         }
 
         function applySettings() {
