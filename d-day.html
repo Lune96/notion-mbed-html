@@ -13,20 +13,27 @@
         --day-color: #000000;
         --dday-color: #000000;
         --bg-color: rgba(255, 255, 255, 1);
+        /* 시스템 테마 지원 명시를 통해 브라우저의 강제 색상 반전 방지 */
+        color-scheme: light dark;
     }
 
-    body {
+    html, body {
         margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        background-color: transparent;
+        /* 배경 투명화 및 외부 테마 배경색 주입 완전 차단 */
+        background-color: transparent !important;
+        background-image: none !important;
         overflow: hidden;
     }
 
     #widget-container {
         flex: 1; display: flex; flex-direction: column; justify-content: space-between;
-        padding: 5vw 6vw; box-sizing: border-box; background-color: var(--bg-color);
+        padding: 5vw 6vw; box-sizing: border-box; 
+        /* 사용자 설정 배경색 및 투명도 최우선 적용 강제 */
+        background-color: var(--bg-color) !important;
         transition: background-color 0.3s;
     }
+
     .top-section { display: flex; flex-direction: column; gap: 0.2vw; }
     
     #disp-text { font-size: var(--txt-size); color: var(--text-color); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; transition: color 0.3s; }
@@ -406,6 +413,11 @@
     els.closeSettings.addEventListener('click', () => els.settingsModal.style.display = 'none');
 
     setInterval(updateDdayCalc, 60000); 
+
+    // iframe 환경(노션 임베드 등) 감지 시 설정 버튼 숨김
+    if (window.self !== window.top) {
+        els.settingsBtn.style.display = 'none';
+    }
 
     loadConfigFromURL();
     applyConfig();
